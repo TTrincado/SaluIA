@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/Base.astro";
+import Card from "../components/UI/Card.astro";
+import ConsultTable from "../components/ConsultTable.jsx";
+import { patients } from "../data/patients.js";
+
+const rows = patients;
+---
+
+<BaseLayout title="SaluIA — Consultar">
+  <Card>
+    <div class="p-6 md:p-8 space-y-6">
+      <div class="flex items-center gap-3">
+        <h2 class="text-xl font-semibold">Historial de procesos</h2>
+      </div>
+      <ConsultTable client:load rows={rows} />
+    </div>
+  </Card>
+</BaseLayout>

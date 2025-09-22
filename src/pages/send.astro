@@ -1,0 +1,14 @@
+---
+import BaseLayout from "../layouts/Base.astro";
+import Card from "../components/UI/Card.astro";
+import SendForm from "../components/SendForm.jsx";
+---
+<BaseLayout title="SaluIA — Enviar">
+  <Card>
+    <div class="p-6 md:p-8 space-y-6">
+      <h2 class="text-xl font-semibold">Enviar caso para evaluación</h2>
+      <p class="text-white/70">Completa los datos del paciente, selecciona un diagnóstico conocido (opcional), adjunta PDF(s) y procesa.</p>
+      <SendForm client:load />
+    </div>
+  </Card>
+</BaseLayout>

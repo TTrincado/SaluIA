@@ -1,0 +1,32 @@
+---
+import Card from "./UI/Card.astro";
+const { patient } = Astro.props; // {name,rut,email,age,urgent}
+---
+<Card>
+  <div class="grid gap-6 p-6 md:grid-cols-2">
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Datos del paciente</h2>
+      <ul class="space-y-1 text-white/80">
+        <li><span class="text-white/50">Nombre:</span> {patient.name}</li>
+        <li><span class="text-white/50">RUT:</span> {patient.rut}</li>
+        <li><span class="text-white/50">Correo:</span> {patient.email}</li>
+        <li><span class="text-white/50">Edad:</span> {patient.age}</li>
+        <li>
+          <span class="text-white/50">Ley de Urgencia:</span>
+          <span class={`ml-2 rounded-md px-2 py-0.5 text-xs ${patient.urgent ? "bg-health-ok/20 text-health-ok" : "bg-white/10 text-white/70"}`}>
+            {patient.urgent ? "Sí" : "No"}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Notas clínicas</h2>
+      <p class="text-white/75 leading-relaxed">
+        Motivo consulta: cefalea súbita, Glasgow 15, PA 150/90, FC 92, SpO₂ 98%.
+        <br /> Exámenes previos: TAC simple normal, EKG sin alteraciones.
+        <br /> Observación: derivado a evaluación neurológica. (Texto ficticio / placeholder)
+      </p>
+    </div>
+  </div>
+</Card>

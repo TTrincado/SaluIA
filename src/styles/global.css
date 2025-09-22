@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --color-health-bg: #0f172a;
+  --color-health-card: #111827;
+  --color-health-accent: #22d3ee;
+  --color-health-accent-dark: #0891b2;
+  --color-health-ok: #34d399;
+  --color-health-warn: #fbbf24;
+  --color-health-error: #f87171;
+}
