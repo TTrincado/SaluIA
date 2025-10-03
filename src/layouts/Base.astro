@@ -6,6 +6,7 @@ const { title = "SaluIA" } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="/health.svg" />
     <title>{title}</title>
   </head>
   <body class="min-h-full bg-health-bg text-white">
@@ -15,7 +16,7 @@ const { title = "SaluIA" } = Astro.props;
         <h1 class="font-semibold tracking-wide">SaluIA</h1>
         <nav class="ml-auto flex gap-4 text-sm">
           <a href="/" class="hover:text-health-accent">Inicio</a>
-          <a href="/consult" class="hover:text-health-accent">Consultar</a>
+          <a href="/patients" class="hover:text-health-accent">Consultar</a>
           <a href="/send" class="hover:text-health-accent">Enviar</a>
         </nav>
       </div>

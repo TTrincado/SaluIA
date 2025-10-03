@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../../layouts/Base.astro";
+import Card from "../../components/UI/Card.astro";
+import PatientDetail from "../../components/PatientDetail.jsx";
+---
+
+<BaseLayout title="SaluIA — Detalle del Paciente">
+  <Card>
+    <div class="p-10 md:p-14 space-y-6">
+      <PatientDetail client:only="react" />
+    </div>
+  </Card>
+</BaseLayout>
