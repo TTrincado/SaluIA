@@ -1,23 +1,26 @@
 ---
 import BaseLayout from "../../layouts/Base.astro";
-import PatientExtra from "../../components/PatientExtra.astro";
+import Card from "../../components/UI/Card.astro";
 import { patients } from "../../data/patients";
+import PatientEditor from "../../components/PatientEditor.jsx";
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
   return patients.map((p) => ({
-    params: { rut: p.rut }, 
-    props: { patient: p },  
+    params: { rut: p.rut },
+    props: { patient: p },
   }));
 };
 
-const { patient } = Astro.props as { patient: {
-  name: string; rut: string; email: string; age: number; urgent: boolean;
-}};
+const { patient } = Astro.props;
 ---
 
 <BaseLayout title={`SaluIA — ${patient.name}`}>
   <div class="space-y-6">
-    <a href="/consult" class="text-sm text-health-accent hover:underline">← Volver a Consultar</a>
-    <PatientExtra patient={patient} />
+    <a href="/consult" class="text-sm text-health-accent hover:underline"
+      >← Volver a Consultar</a
+    >
+    <Card>
+      <PatientEditor client:load initial={patient} />
+    </Card>
   </div>
 </BaseLayout>

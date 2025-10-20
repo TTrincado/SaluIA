@@ -3,6 +3,13 @@ import BaseLayout from "../layouts/Base.astro";
 import Card from "../components/UI/Card.astro";
 ---
 
+<script is:inline>
+  const session = localStorage.getItem("saluia.session");
+  if (!session) {
+    window.location.href = "/auth/login";
+  }
+</script>
+
 <BaseLayout title="SaluIA — Inicio">
   <Card>
     <div class="p-10 flex flex-col items-center gap-6 text-center">
