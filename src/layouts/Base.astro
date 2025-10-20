@@ -2,6 +2,7 @@
 import "../styles/global.css";
 const { title = "SaluIA" } = Astro.props;
 ---
+
 <html lang="es" class="h-full">
   <head>
     <meta charset="utf-8" />
@@ -24,7 +25,9 @@ const { title = "SaluIA" } = Astro.props;
       <slot />
     </main>
     <footer class="mt-12 border-t border-white/10 text-xs text-white/60">
-      <div class="mx-auto max-w-6xl px-4 py-6">© {new Date().getFullYear()} SaluIA</div>
+      <div class="mx-auto max-w-6xl px-4 py-6">
+        © {new Date().getFullYear()} SaluIA
+      </div>
     </footer>
   </body>
 </html>
