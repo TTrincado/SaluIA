@@ -1,5 +1,5 @@
 import { API_URL } from "astro:env/client";
-import type { ApiResponse, ClinicalAttention, PaginatedResponse } from "./types";
+import type { ApiResponse, ClinicalAttention, CreateClinicalAttentionRequest, PaginatedResponse, UpdateClinicalAttentionRequest } from "./types";
 
 type QueryParams = Record<string, string | number | boolean | undefined>;
 
@@ -47,6 +47,12 @@ class ApiClient {
         };
       }
 
+      // Handle empty responses (like DELETE 204 No Content)
+      const contentType = response.headers.get("content-type");
+      if (response.status === 204 || !contentType?.includes("application/json")) {
+        return { success: true, data: undefined as T };
+      }
+
       const data = await response.json();
       return { success: true, data };
     } catch (error) {
@@ -65,15 +71,26 @@ class ApiClient {
     return this.request<PaginatedResponse<ClinicalAttention>>("/clinical_attentions", {}, pagination);
   }
 
-  async getClinicalAttention(id: string): Promise<ApiResponse<ClinicalAttention>> {
-    return this.request<ClinicalAttention>(`/clinical_attentions/${id}`);
-  }
-
-  async createClinicalAttention(clinicalAttention: ClinicalAttention): Promise<ApiResponse<ClinicalAttention>> {
+  async createClinicalAttention(clinicalAttention: CreateClinicalAttentionRequest): Promise<ApiResponse<ClinicalAttention>> {
     return this.request<ClinicalAttention>("/clinical_attentions", {
       method: "POST",
       body: JSON.stringify(clinicalAttention),
     });
+  }
+
+  async getClinicalAttention(id: string): Promise<ApiResponse<ClinicalAttention>> {
+    return this.request<ClinicalAttention>(`/clinical_attentions/${id}`);
+  }
+
+  async updateClinicalAttention(id: string, clinicalAttention: UpdateClinicalAttentionRequest): Promise<ApiResponse<ClinicalAttention>> {
+    return this.request<ClinicalAttention>(`/clinical_attentions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(clinicalAttention),
+    });
+  }
+
+  async deleteClinicalAttention(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/clinical_attentions/${id}`, { method: "DELETE" });
   }
 }
 

@@ -7,9 +7,10 @@ export type ApiResponse<T> = {
 
 // Pagination & Metadata
 export type PaginationMetadata = {
-  count: number;
   page: number;
   page_size: number;
+  count: number;
+  total: number;
 };
 
 export type PaginatedResponse<T> = PaginationMetadata & {
@@ -60,3 +61,17 @@ export type ClinicalAttention = {
   ai_reason: string | null;
   diagnostic: string | null;
 };
+
+export type CreateClinicalAttentionRequest = {
+  patient_id: string;
+  resident_doctor_id: string;
+  supervisor_doctor_id: string;
+  diagnostic: string;
+};
+
+export type UpdateClinicalAttentionRequest = {
+  patient: string;
+  resident_doctor_id: string;
+  diagnostic: string;
+  is_deleted: boolean;
+}

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../modules/api";
 
+
 export default function ConsultTable() {
   const [clinicalAttentions, setClinicalAttentions] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function ConsultTable() {
 
         if (response.success && response.data) {
           setClinicalAttentions(response.data.results);
-          setTotalCount(response.data.count);
+          setTotal(response.data.total);
         } else {
           setError(response.error || "Error al cargar los datos");
         }
@@ -42,9 +43,9 @@ export default function ConsultTable() {
     return new Date(dateString).toLocaleDateString("es-CL");
   };
 
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const startRecord = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const endRecord = Math.min(currentPage * pageSize, totalCount);
+  const totalPages = Math.ceil(total / pageSize);
+  const startRecord = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endRecord = Math.min(currentPage * pageSize, total);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -81,7 +82,7 @@ export default function ConsultTable() {
         <table className="w-full text-sm">
           <thead className="bg-black/30">
             <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
-              <th>Fecha Creación</th>
+              <th>Created At</th>
               <th>Nombre Paciente</th>
               <th>RUT</th>
               <th>Médico Residente</th>
@@ -91,7 +92,7 @@ export default function ConsultTable() {
               <th>Razón IA</th>
               <th>Ley Urgencia</th>
               <th>Sobrescrito</th>
-              <th>Última Actualización</th>
+              <th>Updated At</th>
               <th></th>
             </tr>
           </thead>
@@ -202,7 +203,7 @@ export default function ConsultTable() {
             </select>
           </label>
           <p className="text-xs">
-            Mostrando {startRecord}-{endRecord} de {totalCount} registros
+            Mostrando {startRecord}-{endRecord} de {total} registros
           </p>
         </div>
 
