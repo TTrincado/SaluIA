@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../modules/api";
 
-
 export default function ConsultTable() {
   const [clinicalAttentions, setClinicalAttentions] = useState([]);
   const [total, setTotal] = useState(0);
@@ -177,7 +176,10 @@ export default function ConsultTable() {
             ))}
             {clinicalAttentions.length === 0 && (
               <tr>
-                <td className="px-4 py-6 text-white/60 text-center" colSpan={12}>
+                <td
+                  className="px-4 py-6 text-white/60 text-center"
+                  colSpan={12}
+                >
                   No hay registros.
                 </td>
               </tr>

@@ -70,8 +70,8 @@ export type CreateClinicalAttentionRequest = {
 };
 
 export type UpdateClinicalAttentionRequest = {
-  patient: string;
-  resident_doctor_id: string;
+  patient?: string;
+  resident_doctor_id?: string;
   diagnostic: string;
-  is_deleted: boolean;
+  is_deleted?: boolean;
 }

@@ -1,13 +1,17 @@
 ---
-import BaseLayout from "../../layouts/Base.astro";
-import Card from "../../components/UI/Card.astro";
 import SendForm from "../../components/SendForm.jsx";
+import Card from "../../components/UI/Card.astro";
+import BaseLayout from "../../layouts/Base.astro";
 ---
+
 <BaseLayout title="SaluIA — Enviar">
   <Card>
     <div class="p-6 md:p-8 space-y-6">
       <h2 class="text-xl font-semibold">Crear Nueva Atención Clínica</h2>
-      <p class="text-white/70">Completa los datos del paciente, médicos y diagnóstico para crear una nueva atención clínica en el sistema.</p>
+      <p class="text-white/70">
+        Completa los datos del paciente, médicos y diagnóstico para crear una
+        nueva atención clínica en el sistema.
+      </p>
       <SendForm client:load />
     </div>
   </Card>

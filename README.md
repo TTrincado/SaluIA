@@ -2,7 +2,7 @@
 
 Crear un archivo .env con el siguiente parámetro, apuntando al api server
 
-`API_URL = "http://localhost:3000"`
+`API_URL = "http://localhost:8000/v1"`
 
 Luego instalar y correr:
 

@@ -89,8 +89,8 @@ class ApiClient {
     });
   }
 
-  async deleteClinicalAttention(id: string): Promise<ApiResponse<void>> {
-    return this.request<void>(`/clinical_attentions/${id}`, { method: "DELETE" });
+  async deleteClinicalAttention(id: string, deleted_by_id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/clinical_attentions/${id}`, { method: "DELETE", body: JSON.stringify({ deleted_by_id }) });
   }
 }
 
