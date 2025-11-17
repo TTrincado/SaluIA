@@ -1,102 +1,172 @@
-import { useEffect, useMemo, useState } from "react";
-import { mergeSSRWithClient } from "../data/patientStore";
+import { useEffect, useState } from "react";
+import { apiClient } from "../modules/api";
 
-/**
- * @typedef {Object} Patient
- * @property {string} name
- * @property {string} rut
- * @property {number} age
- * @property {boolean} urgent
- * @property {boolean} presentFirst
- * @property {string} vitals
- * @property {string} doctor
- */
-
-/**
- * @param {{ rows: Patient[] }} props
- */
-
-export default function ConsultTable({ rows = [] }) {
-  const [q, setQ] = useState("");
-  const [data, setData] = useState(rows);
+export default function ConsultTable() {
+  const [clinicalAttentions, setClinicalAttentions] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    setData(mergeSSRWithClient(rows));
-  }, [rows]);
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
-  const view = useMemo(() => {
-    const source = data;
-    if (!q) return source;
-    const s = q.toLowerCase();
-    return source.filter(
-      (r) =>
-        r.name.toLowerCase().includes(s) ||
-        r.rut.toLowerCase().includes(s) ||
-        String(r.age).includes(s) ||
-        r.doctor.toLowerCase().includes(s) ||
-        r.vitals.toLowerCase().includes(s)
+      try {
+        const response = await apiClient.getClinicalAttentions({
+          page: currentPage,
+          page_size: pageSize,
+        });
+
+        if (response.success && response.data) {
+          setClinicalAttentions(response.data.results);
+          setTotal(response.data.total);
+        } else {
+          setError(response.error || "Error al cargar los datos");
+        }
+      } catch (err) {
+        setError("Error al cargar los datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentPage, pageSize]);
+
+  // Helper functions
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("es-CL");
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
+  const startRecord = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endRecord = Math.min(currentPage * pageSize, total);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-white/70">Cargando...</div>
+      </div>
     );
-  }, [q, data]);
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-red-400">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-sm text-white/70">Buscar:</label>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Nombre, RUT, médico, signos…"
-          className="w-72 rounded-lg bg-black/40 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-health-accent"
-        />
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-2xl border border-white/10">
         <table className="w-full text-sm">
           <thead className="bg-black/30">
-            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80">
-              <th>Nombre</th>
-              <th>Rut</th>
-              <th>Edad</th>
-              <th>Signos</th>
-              <th>Urgencia</th>
-              <th>Presente 1ª</th>
-              <th>Médico</th>
+            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
+              <th>Created At</th>
+              <th>Nombre Paciente</th>
+              <th>RUT</th>
+              <th>Médico Residente</th>
+              <th>Médico Supervisor</th>
+              <th>Diagnóstico</th>
+              <th>Resultado IA</th>
+              <th>Razón IA</th>
+              <th>Ley Urgencia</th>
+              <th>Sobrescrito</th>
+              <th>Updated At</th>
               <th></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {view.map((r) => (
-              <tr key={r.rut} className="hover:bg-white/5">
-                <td className="px-4 py-3">{r.name}</td>
-                <td className="px-4 py-3">{r.rut}</td>
-                <td className="px-4 py-3">{r.age}</td>
-                <td className="px-4 py-3">{r.vitals}</td>
-                <td className="px-4 py-3">
+            {clinicalAttentions.map((r) => (
+              <tr key={r.id} className="hover:bg-white/5">
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {formatDate(r.created_at)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {r.patient.first_name} {r.patient.last_name}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">{r.patient.rut}</td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {r.resident_doctor.first_name} {r.resident_doctor.last_name}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {r.supervisor_doctor.first_name}{" "}
+                  {r.supervisor_doctor.last_name}
+                </td>
+                <td className="px-4 py-3 max-w-xs truncate">
+                  {r.diagnostic || "N/A"}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
                   <span
                     className={`rounded-md px-2 py-1 text-xs ${
-                      r.urgent
+                      r.ai_result === true
                         ? "bg-health-ok/20 text-health-ok"
+                        : r.ai_result === false
+                        ? "bg-red-500/20 text-red-400"
                         : "bg-white/10 text-white/70"
                     }`}
                   >
-                    {r.urgent ? "Sí" : "No"}
+                    {r.ai_result === true
+                      ? "Aprobado"
+                      : r.ai_result === false
+                      ? "Rechazado"
+                      : "Pendiente"}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 max-w-xs truncate">
+                  {r.ai_reason || "N/A"}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
                   <span
                     className={`rounded-md px-2 py-1 text-xs ${
-                      r.presentFirst
-                        ? "bg-white/10 text-white/80"
-                        : "bg-white/5 text-white/50"
+                      r.applies_urgency_law === true
+                        ? "bg-health-ok/20 text-health-ok"
+                        : r.applies_urgency_law === false
+                        ? "bg-red-500/20 text-red-400"
+                        : "bg-white/10 text-white/70"
                     }`}
                   >
-                    {r.presentFirst ? "Sí" : "No"}
+                    {r.applies_urgency_law === true
+                      ? "Sí"
+                      : r.applies_urgency_law === false
+                      ? "No"
+                      : "Pendiente"}
                   </span>
                 </td>
-                <td className="px-4 py-3">{r.doctor}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {r.is_deleted ? (
+                    <span className="text-red-400">Eliminado</span>
+                  ) : r.overwritten_by ? (
+                    <span className="text-yellow-400">Sí</span>
+                  ) : (
+                    <span className="text-white/70">No</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {formatDate(r.updated_at)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
                   <a
-                    href={`/patient/${encodeURIComponent(r.rut)}`}
+                    href={`/clinical_attentions/details/${r.id}`}
                     className="text-health-accent hover:underline"
                   >
                     Ver más
@@ -104,10 +174,13 @@ export default function ConsultTable({ rows = [] }) {
                 </td>
               </tr>
             ))}
-            {view.length === 0 && (
+            {clinicalAttentions.length === 0 && (
               <tr>
-                <td className="px-4 py-6 text-white/60" colSpan={8}>
-                  Sin resultados.
+                <td
+                  className="px-4 py-6 text-white/60 text-center"
+                  colSpan={12}
+                >
+                  No hay registros.
                 </td>
               </tr>
             )}
@@ -115,9 +188,47 @@ export default function ConsultTable({ rows = [] }) {
         </table>
       </div>
 
-      <p className="text-xs text-white/50">
-        Mostrando {view.length} de {data.length} registros
-      </p>
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between text-sm text-white/70">
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2">
+            <span>Registros por página:</span>
+            <select
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="rounded-lg bg-black/40 border border-white/10 px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent"
+            >
+              <option value={2}>2</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </label>
+          <p className="text-xs">
+            Mostrando {startRecord}-{endRecord} de {total} registros
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs">
+            Página {currentPage} de {totalPages || 1}
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Anterior
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

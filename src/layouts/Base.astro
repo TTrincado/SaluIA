@@ -11,21 +11,21 @@ const { title = "SaluIA" } = Astro.props;
   </head>
   <body class="min-h-full bg-health-bg text-white">
     <header class="border-b border-white/10 bg-black/20 backdrop-blur">
-      <div class="mx-auto max-w-6xl px-4 py-4 flex items-center gap-3">
+      <div class="mx-auto w-full xl:max-w-6xl px-4 py-4 flex items-center gap-3">
         <img src="/health.svg" alt="SaluIA" class="w-7 h-7" />
         <h1 class="font-semibold tracking-wide">SaluIA</h1>
         <nav class="ml-auto flex gap-4 text-sm">
           <a href="/" class="hover:text-health-accent">Inicio</a>
-          <a href="/consult" class="hover:text-health-accent">Consultar</a>
+          <a href="/clinical_attentions" class="hover:text-health-accent">Consultar</a>
           <a href="/send" class="hover:text-health-accent">Enviar</a>
         </nav>
       </div>
     </header>
-    <main class="mx-auto max-w-6xl px-4 py-8">
+    <main class="mx-auto w-full xl:max-w-6xl px-4 py-8">
       <slot />
     </main>
     <footer class="mt-12 border-t border-white/10 text-xs text-white/60">
-      <div class="mx-auto max-w-6xl px-4 py-6">
+      <div class="mx-auto w-full xl:max-w-6xl px-4 py-6">
         © {new Date().getFullYear()} SaluIA
       </div>
     </footer>
