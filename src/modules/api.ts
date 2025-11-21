@@ -104,13 +104,13 @@ class ApiClient {
     return this.request<{
       resident: DoctorWithId[];
       supervisor: DoctorWithId[];
-    }>("/get-doctors");
+    }>("/doctors/get-doctors");
   }
 
   // Patients
   // GET /patients returns an object with `patients` array
   async getPatients(): Promise<ApiResponse<{ patients: PatientWithId[] }>> {
-    return this.request<{ patients: PatientWithId[] }>("/patients");
+    return this.request<{ patients: PatientWithId[] }>("/patients/patients");
   }
 
   // clinical attentions endpoints
