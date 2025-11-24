@@ -79,7 +79,7 @@ export default function ConsultTable() {
         <table className="w-full text-sm">
           <thead className="bg-black/30">
             <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
-              <th>Created At</th>
+              <th>Fecha de creación</th>
               <th>ID Episodio</th>
               <th>Nombre Paciente</th>
               <th>RUT</th>
@@ -88,7 +88,7 @@ export default function ConsultTable() {
               <th>Aprobado Por Medico</th>
               <th>Ley Urgencia</th>
               <th>Resultado IA</th>
-              <th>Updated At</th>
+              <th>Ultima actualización</th>
               <th></th>
             </tr>
           </thead>

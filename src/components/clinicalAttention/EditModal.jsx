@@ -7,6 +7,7 @@ export default function EditModal({
   clinicalAttention,
   onSuccess,
 }) {
+  // --- Estado de HEAD (Datos Clínicos Estructurados) ---
   const [anamnesis, setAnamnesis] = useState("");
   const [signos, setSignos] = useState({
     "Temperatura": "36.5°C",
@@ -20,40 +21,55 @@ export default function EditModal({
   });
   const [hallazgos, setHallazgos] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
+
+  // --- Estado de Main (Datos Administrativos) ---
+  // Manejamos null, true, false
+  const [urgencyLaw, setUrgencyLaw] = useState(
+    clinicalAttention?.applies_urgency_law
+  ); 
+  const [reason, setReason] = useState(
+    clinicalAttention?.overwritten_reason || ""
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
 
   // -----------------------------
-  // Parse clinical summary
+  // Parse clinical summary (Lógica de HEAD)
   // -----------------------------
   useEffect(() => {
     if (!clinicalAttention?.diagnostic) return;
 
     const txt = clinicalAttention.diagnostic;
-    const raw = txt.split("=====").map((s) => s.trim()).filter(Boolean);
+    // Intentamos parsear si tiene formato estructurado
+    if (txt.includes("=====")) {
+        const raw = txt.split("=====").map((s) => s.trim()).filter(Boolean);
 
-    const getSection = (name) => {
-      const idx = raw.findIndex((r) => r.toLowerCase() === name.toLowerCase());
-      return idx !== -1 ? raw[idx + 1] : "";
-    };
+        const getSection = (name) => {
+          const idx = raw.findIndex((r) => r.toLowerCase() === name.toLowerCase());
+          return idx !== -1 ? raw[idx + 1] : "";
+        };
 
-    setAnamnesis(getSection("ANAMNESIS"));
-    setHallazgos(getSection("HALLAZGOS CLÍNICOS"));
-    setDiagnostico(getSection("DIAGNÓSTICO PRESUNTIVO"));
+        setAnamnesis(getSection("ANAMNESIS"));
+        setHallazgos(getSection("HALLAZGOS CLÍNICOS"));
+        setDiagnostico(getSection("DIAGNÓSTICO PRESUNTIVO"));
 
-    // signos vitales
-    const vitals = getSection("SIGNOS VITALES");
-    const updated = {};
-
-    vitals.split("\n").forEach((l) => {
-      if (l.includes(":")) {
-        const [k, v] = l.split(":").map((x) => x.trim());
-        updated[k] = v;
-      }
-    });
-
-    setSignos((prev) => ({ ...prev, ...updated }));
+        // signos vitales
+        const vitals = getSection("SIGNOS VITALES");
+        if (vitals) {
+            const updated = {};
+            vitals.split("\n").forEach((l) => {
+            if (l.includes(":")) {
+                const [k, v] = l.split(":").map((x) => x.trim());
+                updated[k] = v;
+            }
+            });
+            setSignos((prev) => ({ ...prev, ...updated }));
+        }
+    } else {
+        // Si es texto plano antiguo, lo ponemos todo en diagnóstico
+        setDiagnostico(txt);
+    }
   }, [clinicalAttention]);
 
   // -----------------------------
@@ -81,33 +97,35 @@ ${diagnostico}
   };
 
   // -----------------------------
-  // Submit
+  // Submit (Combinado)
   // -----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccessMessage("");
 
     const newTxt = buildTxt();
 
     try {
+      // Enviamos diagnóstico estructurado + ley de urgencia + razón
       const response = await apiClient.updateClinicalAttention(
         clinicalAttention.id,
-        { diagnostic: newTxt, clinical_summary_txt: newTxt }
+        { 
+          diagnostic: newTxt,
+          clinical_summary_txt: newTxt, // En caso de que el backend soporte ambos
+          applies_urgency_law: urgencyLaw,
+          overwritten_reason: reason 
+        }
       );
 
       if (response.success) {
-        setSuccessMessage("Atención clínica actualizada exitosamente");
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 1000);
+        onSuccess();
+        onClose();
       } else {
-        setError(response.error || "Error al actualizar la atención clínica");
+        setError(response.error || "Error al actualizar");
       }
-    } catch {
-      setError("Error al actualizar la atención clínica");
+    } catch (err) {
+      setError("Error al conectar con el servidor");
     } finally {
       setLoading(false);
     }
@@ -124,17 +142,23 @@ ${diagnostico}
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={handleBackdrop}
     >
-      <div className="bg-[#151929] rounded-xl p-6 w-full max-w-2xl mx-4 border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#0A0A0A] rounded-2xl border border-white/10 w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
 
-        <h2 className="text-2xl font-semibold mb-5 text-white tracking-wide">
-          Editar Atención Clínica
-        </h2>
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+          <h2 className="text-lg font-semibold text-white tracking-wide">
+            Editar Atención Clínica
+          </h2>
+          <button onClick={onClose} className="text-white/50 hover:text-white transition">✕</button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
 
+          {/* --- SECCIÓN 1: DATOS CLÍNICOS (HEAD) --- */}
+          
           {/* ANAMNESIS */}
           <div>
             <label className="block text-sm font-medium text-white/70 mb-2">
@@ -196,25 +220,66 @@ ${diagnostico}
             />
           </div>
 
-          {/* MENSAJES */}
+          <hr className="border-white/10" />
+
+          {/* --- SECCIÓN 2: DATOS ADMINISTRATIVOS (MAIN) --- */}
+
+          <div className="grid md:grid-cols-2 gap-6">
+            
+            {/* Ley de Urgencia */}
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                ¿Aplica Ley de Urgencia?
+              </label>
+              <div className="flex gap-2">
+                {[
+                  { label: "Sí", value: true, activeClass: "bg-health-ok/20 text-health-ok border-health-ok/50" },
+                  { label: "No", value: false, activeClass: "bg-red-500/20 text-red-400 border-red-500/50" },
+                  { label: "Pendiente", value: null, activeClass: "bg-white/10 text-white border-white/30" }
+                ].map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => setUrgencyLaw(option.value)}
+                    className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${
+                      urgencyLaw === option.value
+                        ? option.activeClass + " ring-1 ring-offset-1 ring-offset-black ring-white/20"
+                        : "bg-transparent border-white/10 text-white/40 hover:bg-white/5"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Razón de cambio */}
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Motivo de edición / Sobrescritura
+              </label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                className="w-full rounded-xl bg-black/40 border border-white/10 px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-health-accent resize-none placeholder:text-white/20"
+                placeholder="Opcional: ¿Por qué se modificó esta atención?"
+              />
+            </div>
+          </div>
+
           {error && (
-            <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
               {error}
             </div>
           )}
 
-          {successMessage && (
-            <div className="text-health-ok text-sm bg-health-ok/10 border border-health-ok/20 rounded-lg px-3 py-2">
-              {successMessage}
-            </div>
-          )}
-
-          {/* BOTONES */}
+          {/* Footer Actions */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-white/10 text-white hover:bg-white/10 transition"
+              className="px-4 py-2 text-sm font-medium text-white/60 hover:text-white transition-colors"
             >
               Cancelar
             </button>
@@ -222,9 +287,9 @@ ${diagnostico}
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-health-accent text-black font-medium hover:bg-health-accent-dark transition disabled:opacity-50"
+              className="px-6 py-2 rounded-xl bg-health-accent text-black text-sm font-bold hover:bg-health-accent-dark transition disabled:opacity-50 flex items-center gap-2"
             >
-              {loading ? "Guardando..." : "Guardar cambios"}
+              {loading ? "Guardando..." : "Guardar Cambios"}
             </button>
           </div>
         </form>
