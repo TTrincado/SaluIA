@@ -47,9 +47,6 @@ const parseClinicalSummary = (txt) => {
 // =====================
 // COMPONENTE TARJETA MÉDICO (HOVER EFFECT)
 // =====================
-// =====================
-// COMPONENTE TARJETA MÉDICO (HOVER EFFECT)
-// =====================
 const DoctorCard = ({
   title,
   firstName,
@@ -125,12 +122,13 @@ export default function ClinicalAttentionDetail({ attentionId }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Head Logic
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showUpdateSuccessModal, setShowUpdateSuccessModal] = useState(false);
+
   const [polling, setPolling] = useState(false);
   const [approvalReason, setApprovalReason] = useState("");
   const [rejectMode, setRejectMode] = useState(false);
 
-  // Main Logic
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
@@ -163,6 +161,12 @@ export default function ClinicalAttentionDetail({ attentionId }) {
       if (response.success && response.data) {
         setClinicalAttention(response.data);
         setApprovalReason(response.data.medic_reject_reason || "");
+
+        // Si ya tenemos resultado y veníamos de un update, quitamos el estado de carga
+        if (isUpdating && response.data.ai_result !== null) {
+          setIsUpdating(false);
+        }
+
         setPolling(response.data.ai_result === null);
       } else {
         setError(response.error || "Error al cargar los datos");
@@ -181,8 +185,14 @@ export default function ClinicalAttentionDetail({ attentionId }) {
   }, [polling]);
 
   const handleEditSuccess = () => {
-    setLoading(true);
+    setShowEditModal(false);
+    setIsUpdating(true);
+    setShowUpdateSuccessModal(true);
     fetchData();
+  };
+
+  const closeUpdateSuccessModal = () => {
+    setShowUpdateSuccessModal(false);
   };
 
   const handleMedicApproval = async (approved) => {
@@ -262,7 +272,46 @@ export default function ClinicalAttentionDetail({ attentionId }) {
     userRole === "supervisor" || (userRole === "resident" && isOwner);
 
   return (
-    <div className="p-6 flex flex-col gap-6 animate-in fade-in duration-500">
+    <div className="p-6 flex flex-col gap-6 animate-in fade-in duration-500 relative">
+      {/* ===================== */}
+      {/* MODAL SUCCESS UPDATE  */}
+      {/* ===================== */}
+      {showUpdateSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#1a1a1a] border border-health-accent/30 p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4 text-center">
+            <div className="w-12 h-12 bg-health-accent/20 rounded-full flex items-center justify-center mx-auto mb-4 text-health-accent">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4.5 12.75l6 6 9-13.5"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">
+              Consulta en proceso de actualización
+            </h3>
+            <p className="text-white/60 text-sm mb-6">
+              Por favor, espera unos segundos y vuelve a refrescar la página
+              para ver el nuevo análisis.
+            </p>
+            <button
+              onClick={closeUpdateSuccessModal}
+              className="w-full bg-health-accent text-black font-semibold py-2 rounded-lg hover:bg-health-accent/90 transition"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <a
@@ -304,7 +353,7 @@ export default function ClinicalAttentionDetail({ attentionId }) {
       </div>
 
       {/* ================================================= */}
-      {/* FILA 1 (ARRIBA)                  */}
+      {/* FILA 1 (ARRIBA)                   */}
       {/* Datos Paciente (Izq) --- Equipo Médico (Der)  */}
       {/* ================================================= */}
 
@@ -381,7 +430,7 @@ export default function ClinicalAttentionDetail({ attentionId }) {
       </div>
 
       {/* ================================================= */}
-      {/* FILA 2 (ABAJO)                   */}
+      {/* FILA 2 (ABAJO)                    */}
       {/* Información Clínica (Izq) --- Análisis IA (Der) */}
       {/* ================================================= */}
 
@@ -455,43 +504,57 @@ export default function ClinicalAttentionDetail({ attentionId }) {
           <ul className="space-y-3 text-white/80">
             <li>
               <span className="text-white/50">Ley de Urgencia:</span>
-              <span
-                className={`ml-2 rounded-md px-2 py-0.5 text-xs ${
-                  ca.applies_urgency_law === true
-                    ? "bg-health-ok/20 text-health-ok"
+
+              {isUpdating ? (
+                <span className="ml-2 text-white/40 italic text-xs">
+                  Cargando...
+                </span>
+              ) : (
+                <span
+                  className={`ml-2 rounded-md px-2 py-0.5 text-xs ${
+                    ca.applies_urgency_law === true
+                      ? "bg-health-ok/20 text-health-ok"
+                      : ca.applies_urgency_law === false
+                      ? "bg-red-500/20 text-red-400"
+                      : "bg-white/10 text-white/70"
+                  }`}
+                >
+                  {ca.applies_urgency_law === true
+                    ? "Sí"
                     : ca.applies_urgency_law === false
-                    ? "bg-red-500/20 text-red-400"
-                    : "bg-white/10 text-white/70"
-                }`}
-              >
-                {ca.applies_urgency_law === true
-                  ? "Sí"
-                  : ca.applies_urgency_law === false
-                  ? "No"
-                  : "Pendiente"}
-              </span>
+                    ? "No"
+                    : "Pendiente"}
+                </span>
+              )}
             </li>
 
             <li>
               <span className="text-white/50">Resultado IA:</span>
-              <span
-                className={`ml-2 rounded-md px-2 py-0.5 text-xs ${
-                  ca.ai_result === true
-                    ? "bg-health-ok/20 text-health-ok"
+
+              {isUpdating ? (
+                <span className="ml-2 text-white/40 italic text-xs">
+                  Cargando...
+                </span>
+              ) : (
+                <span
+                  className={`ml-2 rounded-md px-2 py-0.5 text-xs ${
+                    ca.ai_result === true
+                      ? "bg-health-ok/20 text-health-ok"
+                      : ca.ai_result === false
+                      ? "bg-red-500/20 text-red-400"
+                      : "bg-white/10 text-white/70"
+                  }`}
+                >
+                  {ca.ai_result === true
+                    ? "Aprobado"
                     : ca.ai_result === false
-                    ? "bg-red-500/20 text-red-400"
-                    : "bg-white/10 text-white/70"
-                }`}
-              >
-                {ca.ai_result === true
-                  ? "Aprobado"
-                  : ca.ai_result === false
-                  ? "Rechazado"
-                  : "Pendiente"}
-              </span>
+                    ? "Rechazado"
+                    : "Pendiente"}
+                </span>
+              )}
             </li>
 
-            {ca.ai_result === null && (
+            {(ca.ai_result === null || isUpdating) && (
               <li className="flex items-center gap-2 text-white/70 mt-2">
                 <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
                 <span>Procesando diagnóstico...</span>
@@ -500,7 +563,11 @@ export default function ClinicalAttentionDetail({ attentionId }) {
 
             <li>
               <span className="text-white/50">Confianza IA:</span>
-              {ca.ai_confidence !== null ? (
+              {isUpdating ? (
+                <span className="ml-2 text-white/40 italic text-xs">
+                  Cargando...
+                </span>
+              ) : ca.ai_confidence !== null ? (
                 <span
                   className={`ml-2 rounded-md px-2 py-0.5 text-xs ${
                     ca.ai_confidence >= 0.8
@@ -517,12 +584,16 @@ export default function ClinicalAttentionDetail({ attentionId }) {
 
             <li>
               <span className="text-white/50">Razón IA:</span>{" "}
-              {ca.ai_reason || "N/A"}
+              {isUpdating ? (
+                <span className="text-white/40 italic">Cargando...</span>
+              ) : (
+                ca.ai_reason || "N/A"
+              )}
             </li>
           </ul>
 
           {/* APROBACIÓN MÉDICA */}
-          {canEdit && ca.medic_approved === null && (
+          {canEdit && ca.medic_approved === null && !isUpdating && (
             <div className="mt-6 bg-black/20 border border-white/10 p-4 rounded-xl">
               <h3 className="text-white text-md font-semibold mb-3">
                 Aprobación del Médico
