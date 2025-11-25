@@ -132,6 +132,20 @@ export default function ClinicalAttentionDetail({ attentionId }) {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+    let timer;
+
+    if (isUpdating) {
+      timer = setTimeout(() => {
+        fetchData(true);
+        setShowUpdateSuccessModal(false);
+        setIsUpdating(false);
+      }, 30000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [isUpdating]);
+
+  useEffect(() => {
     const sessionStr = localStorage.getItem("saluia.session");
     if (sessionStr) {
       const session = JSON.parse(sessionStr);
