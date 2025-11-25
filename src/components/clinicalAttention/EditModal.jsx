@@ -7,26 +7,22 @@ export default function EditModal({
   clinicalAttention,
   onSuccess,
 }) {
-  // --- Estado de HEAD (Datos Clínicos Estructurados) ---
   const [anamnesis, setAnamnesis] = useState("");
   const [signos, setSignos] = useState({
-    "Temperatura": "36.5°C",
-    "Presión Arterial": "120/80",
-    "Frecuencia Cardíaca": "75",
-    "Frecuencia Respiratoria": "16",
-    "Saturación O2": "98%",
-    "Glasgow": "15",
-    "Dolor (0-10)": "0",
-    "Glicemia Capilar": "90",
+    Temperatura: "N/A",
+    "Presión Arterial": "N/A",
+    "Frecuencia Cardíaca": "N/A",
+    "Frecuencia Respiratoria": "N/A",
+    "Saturación O2": "N/A",
+    Glasgow: "N/A",
+    "Dolor (0-10)": "N/A",
+    "Glicemia Capilar": "N/A",
   });
   const [hallazgos, setHallazgos] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
-
-  // --- Estado de Main (Datos Administrativos) ---
-  // Manejamos null, true, false
   const [urgencyLaw, setUrgencyLaw] = useState(
     clinicalAttention?.applies_urgency_law
-  ); 
+  );
   const [reason, setReason] = useState(
     clinicalAttention?.overwritten_reason || ""
   );
@@ -35,7 +31,7 @@ export default function EditModal({
   const [error, setError] = useState(null);
 
   // -----------------------------
-  // Parse clinical summary (Lógica de HEAD)
+  // Parse clinical summary
   // -----------------------------
   useEffect(() => {
     if (!clinicalAttention?.diagnostic) return;
@@ -43,32 +39,36 @@ export default function EditModal({
     const txt = clinicalAttention.diagnostic;
     // Intentamos parsear si tiene formato estructurado
     if (txt.includes("=====")) {
-        const raw = txt.split("=====").map((s) => s.trim()).filter(Boolean);
+      const raw = txt
+        .split("=====")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-        const getSection = (name) => {
-          const idx = raw.findIndex((r) => r.toLowerCase() === name.toLowerCase());
-          return idx !== -1 ? raw[idx + 1] : "";
-        };
+      const getSection = (name) => {
+        const idx = raw.findIndex(
+          (r) => r.toLowerCase() === name.toLowerCase()
+        );
+        return idx !== -1 ? raw[idx + 1] : "";
+      };
 
-        setAnamnesis(getSection("ANAMNESIS"));
-        setHallazgos(getSection("HALLAZGOS CLÍNICOS"));
-        setDiagnostico(getSection("DIAGNÓSTICO PRESUNTIVO"));
+      setAnamnesis(getSection("ANAMNESIS"));
+      setHallazgos(getSection("HALLAZGOS CLÍNICOS"));
+      setDiagnostico(getSection("DIAGNÓSTICO PRESUNTIVO"));
 
-        // signos vitales
-        const vitals = getSection("SIGNOS VITALES");
-        if (vitals) {
-            const updated = {};
-            vitals.split("\n").forEach((l) => {
-            if (l.includes(":")) {
-                const [k, v] = l.split(":").map((x) => x.trim());
-                updated[k] = v;
-            }
-            });
-            setSignos((prev) => ({ ...prev, ...updated }));
-        }
+      // signos vitales
+      const vitals = getSection("SIGNOS VITALES");
+      if (vitals) {
+        const updated = {};
+        vitals.split("\n").forEach((l) => {
+          if (l.includes(":")) {
+            const [k, v] = l.split(":").map((x) => x.trim());
+            updated[k] = v;
+          }
+        });
+        setSignos((prev) => ({ ...prev, ...updated }));
+      }
     } else {
-        // Si es texto plano antiguo, lo ponemos todo en diagnóstico
-        setDiagnostico(txt);
+      setDiagnostico(txt);
     }
   }, [clinicalAttention]);
 
@@ -80,8 +80,7 @@ export default function EditModal({
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n");
 
-    return (
-`===== ANAMNESIS =====
+    return `===== ANAMNESIS =====
 ${anamnesis}
 
 ===== SIGNOS VITALES =====
@@ -92,12 +91,11 @@ ${hallazgos}
 
 ===== DIAGNÓSTICO PRESUNTIVO =====
 ${diagnostico}
-`
-    );
+`;
   };
 
   // -----------------------------
-  // Submit (Combinado)
+  // Submit
   // -----------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,11 +108,11 @@ ${diagnostico}
       // Enviamos diagnóstico estructurado + ley de urgencia + razón
       const response = await apiClient.updateClinicalAttention(
         clinicalAttention.id,
-        { 
+        {
           diagnostic: newTxt,
           clinical_summary_txt: newTxt, // En caso de que el backend soporte ambos
           applies_urgency_law: urgencyLaw,
-          overwritten_reason: reason 
+          overwritten_reason: reason,
         }
       );
 
@@ -146,19 +144,22 @@ ${diagnostico}
       onClick={handleBackdrop}
     >
       <div className="bg-[#0A0A0A] rounded-2xl border border-white/10 w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
-
         {/* Header */}
         <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
           <h2 className="text-lg font-semibold text-white tracking-wide">
             Editar Atención Clínica
           </h2>
-          <button onClick={onClose} className="text-white/50 hover:text-white transition">✕</button>
+          <button
+            onClick={onClose}
+            className="text-white/50 hover:text-white transition"
+          >
+            ✕
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
-
           {/* --- SECCIÓN 1: DATOS CLÍNICOS (HEAD) --- */}
-          
+
           {/* ANAMNESIS */}
           <div>
             <label className="block text-sm font-medium text-white/70 mb-2">
@@ -225,7 +226,6 @@ ${diagnostico}
           {/* --- SECCIÓN 2: DATOS ADMINISTRATIVOS (MAIN) --- */}
 
           <div className="grid md:grid-cols-2 gap-6">
-            
             {/* Ley de Urgencia */}
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">
@@ -233,9 +233,22 @@ ${diagnostico}
               </label>
               <div className="flex gap-2">
                 {[
-                  { label: "Sí", value: true, activeClass: "bg-health-ok/20 text-health-ok border-health-ok/50" },
-                  { label: "No", value: false, activeClass: "bg-red-500/20 text-red-400 border-red-500/50" },
-                  { label: "Pendiente", value: null, activeClass: "bg-white/10 text-white border-white/30" }
+                  {
+                    label: "Sí",
+                    value: true,
+                    activeClass:
+                      "bg-health-ok/20 text-health-ok border-health-ok/50",
+                  },
+                  {
+                    label: "No",
+                    value: false,
+                    activeClass: "bg-red-500/20 text-red-400 border-red-500/50",
+                  },
+                  {
+                    label: "Pendiente",
+                    value: null,
+                    activeClass: "bg-white/10 text-white border-white/30",
+                  },
                 ].map((option) => (
                   <button
                     key={option.label}
@@ -243,7 +256,8 @@ ${diagnostico}
                     onClick={() => setUrgencyLaw(option.value)}
                     className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${
                       urgencyLaw === option.value
-                        ? option.activeClass + " ring-1 ring-offset-1 ring-offset-black ring-white/20"
+                        ? option.activeClass +
+                          " ring-1 ring-offset-1 ring-offset-black ring-white/20"
                         : "bg-transparent border-white/10 text-white/40 hover:bg-white/5"
                     }`}
                   >
