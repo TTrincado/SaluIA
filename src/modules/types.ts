@@ -56,11 +56,8 @@ export type PatientWithId = Patient & {
 
 export type ClinicalAttention = {
   id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
+  created_at: string;
+  updated_at: string;
   overwritten_by: string | null;
   overwritten_reason: string | null;
   patient: Patient;
@@ -68,8 +65,7 @@ export type ClinicalAttention = {
   supervisor_doctor: Doctor;
   applies_urgency_law: boolean | null;
   ai_result: boolean | null;
-  ai_reason: string | null;
-  diagnostic: string | null;
+  medic_approved: boolean | null;
 };
 
 export type CreateClinicalAttentionRequest = {
@@ -84,12 +80,11 @@ export type UpdateClinicalAttentionRequest = {
   resident_doctor_id?: string;
   diagnostic: string;
   is_deleted?: boolean;
-}
-
+};
 
 // --- Auth Types (Based on FastAPI models) ---
 
-export type UserRole = 'resident' | 'supervisor';
+export type UserRole = "resident" | "supervisor";
 
 /**
  * Payload for /auth/login

@@ -1,13 +1,13 @@
 ---
 import Card from "../components/UI/Card.astro";
-import ClinicalAttentionDetail from "../components/clinicalAttention/Detail.jsx";
+import ClinicalAttentionDetail from "../components/episodes/Detail.jsx";
 import BaseLayout from "../layouts/Base.astro";
 
 // Esta página actúa como fallback para rutas dinámicas del lado del cliente
 // Detecta el patrón de URL y renderiza el componente apropiado
 const pathname = Astro.url.pathname;
 const isClinicalAttentionDetails = pathname.startsWith(
-  "/clinical_attentions/details/"
+  "/clinical_attentions/details/",
 );
 ---
 
