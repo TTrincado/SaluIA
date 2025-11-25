@@ -23,9 +23,6 @@ export default function EditModal({
   const [urgencyLaw, setUrgencyLaw] = useState(
     clinicalAttention?.applies_urgency_law
   );
-  const [reason, setReason] = useState(
-    clinicalAttention?.overwritten_reason || ""
-  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -112,7 +109,6 @@ ${diagnostico}
           diagnostic: newTxt,
           clinical_summary_txt: newTxt, // En caso de que el backend soporte ambos
           applies_urgency_law: urgencyLaw,
-          overwritten_reason: reason,
         }
       );
 
@@ -265,20 +261,6 @@ ${diagnostico}
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Razón de cambio */}
-            <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                Motivo de edición / Sobrescritura
-              </label>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                className="w-full rounded-xl bg-black/40 border border-white/10 px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-health-accent resize-none placeholder:text-white/20"
-                placeholder="Opcional: ¿Por qué se modificó esta atención?"
-              />
             </div>
           </div>
 

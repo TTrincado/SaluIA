@@ -153,7 +153,6 @@ class ApiClient {
     });
   }
 
-  // --- Método nuevo de HEAD integrado ---
   async AproveClinicalAttention(id: string, approved:boolean, reason:string, medic_id: string): Promise<ApiResponse<ClinicalAttention>> {
     return this.request<ClinicalAttention>(`/clinical_attentions/${id}/medic_approval`, {
       method: "PATCH",
