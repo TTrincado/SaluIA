@@ -25,7 +25,7 @@ export default function AuthForm({ mode }) {
 
     try {
       if (mode === "register") {
-        const regResponse = await apiClient.register({
+        const regResponse = await apiClient.registerUser({
           first: form.first,
           last: form.last,
           email: form.email,
