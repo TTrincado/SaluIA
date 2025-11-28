@@ -146,7 +146,7 @@ export default function ConsultTable() {
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {r.id_episodio ? r.id_episodio : r.id}
+                   {r.id_episodio || "No informado"}
                   </td>
 
 
