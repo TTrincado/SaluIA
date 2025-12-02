@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,29 +30,29 @@ export default function Header() {
 
   return (
     <>
-      <header className="border-b border-white/10 bg-black/20 backdrop-blur relative z-40">
-        <div className="mx-auto w-full xl:max-w-6xl px-4 py-4 flex items-center gap-3">
-          <img src="/health.svg" alt="SaluIA" className="w-7 h-7" />
-          <h1 className="font-semibold tracking-wide">SaluIA</h1>
+      <header className="border-b border-health-border bg-gray-50 backdrop-blur relative z-40 shadow-md">
+        <div className="mx-auto w-full xl:max-w-6xl px-4 py-5 flex items-center gap-4">
+          <img src="/logo.png" alt="SaluIA" className="w-36"/>
+          <h1 className="font-semibold tracking-wide text-health-secondary text-2xl">SaluIA</h1>
 
-          <nav className="ml-auto flex gap-4 text-sm">
+          <nav className="ml-auto flex gap-4 text-md text-health-text">
             <a
               href="/"
-              className="hover:text-health-accent transition-colors"
+              className="hover:text-health-accent transition-colors font-medium"
             >
               Inicio
             </a>
             {userRole === "admin" && (
             <a
               href="/aseguradora"
-              className="hover:text-health-accent transition-colors"
+              className="hover:text-health-accent transition-colors font-medium"
             >
               Aseguradoras
             </a>
             )}
             <button
               onClick={() => setShowLogoutModal(true)}
-              className="hover:text-red-400 transition-colors text-left cursor-pointer"
+              className="hover:text-red-600 transition-colors text-left cursor-pointer font-medium"
             >
               Cerrar Sesión
             </button>
@@ -62,26 +62,26 @@ export default function Header() {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[#0A0A0A] border border-white/10 p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h3 className="text-lg font-semibold text-white mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white border border-health-border p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-semibold text-health-text mb-2">
               ¿Cerrar sesión?
             </h3>
-            <p className="text-white/60 text-sm mb-6">
+            <p className="text-health-text-muted text-sm mb-6">
               Serás redirigido al inicio de sesión.
             </p>
 
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-medium text-health-text-muted hover:text-health-text transition-colors"
               >
                 Cancelar
               </button>
 
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                className="px-4 py-2 text-sm font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition-all"
               >
                 Sí, salir
               </button>

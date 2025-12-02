@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { apiClient } from "../../modules/api";
 
 export default function EditModal({
@@ -184,7 +184,7 @@ ${diagnostico}
           <h2 className="text-lg font-semibold text-white tracking-wide">
             Editar Atención Clínica
           </h2>
-          
+
           <button
             onClick={onClose}
             className="text-white/50 hover:text-white transition"
@@ -207,7 +207,7 @@ ${diagnostico}
   <p className="text-xs text-white/40 mt-1">
   </p>
 </div>
-        {/* MOTIVO DE CONSULTA */}
+{/* MOTIVO DE CONSULTA */}
         <div>
           <label className="block text-sm font-medium text-white/70 mb-2">
             Motivo de Consulta
@@ -245,8 +245,6 @@ ${diagnostico}
             ))}
           </div>
         </div>
-
-
 
 
           {/* ANAMNESIS */}

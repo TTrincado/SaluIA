@@ -19,34 +19,34 @@ export default function MetricCard({
   // Definir estilos por tema
   const themeStyles = {
     default: {
-      bg: 'bg-white/5',
-      border: 'border-white/10',
-      valueColor: 'text-white',
-      iconBg: 'bg-white/10'
+      bg: 'bg-gray-50',
+      border: 'border-health-border',
+      valueColor: 'text-health-text',
+      iconBg: 'bg-gray-100'
     },
     success: {
-      bg: 'bg-green-500/10',
-      border: 'border-green-500/30',
-      valueColor: 'text-green-400',
-      iconBg: 'bg-green-500/20'
+      bg: 'bg-green-50',
+      border: 'border-green-200',
+      valueColor: 'text-green-600',
+      iconBg: 'bg-green-100'
     },
     warning: {
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/30',
-      valueColor: 'text-amber-400',
-      iconBg: 'bg-amber-500/20'
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      valueColor: 'text-amber-600',
+      iconBg: 'bg-amber-100'
     },
     danger: {
-      bg: 'bg-red-500/10',
-      border: 'border-red-500/30',
-      valueColor: 'text-red-400',
-      iconBg: 'bg-red-500/20'
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      valueColor: 'text-red-600',
+      iconBg: 'bg-red-100'
     },
     info: {
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/30',
-      valueColor: 'text-blue-400',
-      iconBg: 'bg-blue-500/20'
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      valueColor: 'text-blue-600',
+      iconBg: 'bg-blue-100'
     },
     highlight: {
       bg: 'bg-health-accent/10',
@@ -73,14 +73,14 @@ export default function MetricCard({
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-white/60 mb-2">
+          <h3 className="text-sm font-medium text-health-text-muted mb-2">
             {title}
           </h3>
           <div className={`text-3xl font-bold ${currentTheme.valueColor} mb-1`}>
             {value}
           </div>
           {subtitle && (
-            <p className="text-xs text-white/50 mt-2">
+            <p className="text-xs text-health-text-muted mt-2">
               {subtitle}
             </p>
           )}
@@ -123,7 +123,7 @@ export function MetricCardWithProgress({
   count = null
 }) {
   const themeStyles = {
-    default: 'bg-white/20',
+    default: 'bg-gray-300',
     success: 'bg-green-500',
     warning: 'bg-amber-500',
     danger: 'bg-red-500',
@@ -134,43 +134,43 @@ export function MetricCardWithProgress({
   const progressBarColor = themeStyles[theme] || themeStyles.default;
 
   return (
-    <div 
+    <div
       className={`
-        bg-white/5 
-        border 
-        border-white/10 
-        rounded-2xl 
-        p-6 
-        transition-all 
+        bg-gray-50
+        border
+        border-health-border
+        rounded-2xl
+        p-6
+        transition-all
         hover:scale-[1.02]
         hover:shadow-lg
       `}
     >
-      <h3 className="text-sm font-medium text-white/60 mb-2">
+      <h3 className="text-sm font-medium text-health-text-muted mb-2">
         {title}
       </h3>
-      
+
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-3xl font-bold text-white">
+        <span className="text-3xl font-bold text-health-text">
           {value}%
         </span>
         {count !== null && (
-          <span className="text-sm text-white/50">
+          <span className="text-sm text-health-text-muted">
             ({count}{total ? ` de ${total}` : ''})
           </span>
         )}
       </div>
 
       {/* Barra de progreso */}
-      <div className="w-full bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
-        <div 
+      <div className="w-full bg-gray-200 rounded-full h-2 mb-2 overflow-hidden">
+        <div
           className={`${progressBarColor} h-full rounded-full transition-all duration-500 ease-out`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
 
       {subtitle && (
-        <p className="text-xs text-white/50 mt-2">
+        <p className="text-xs text-health-text-muted mt-2">
           {subtitle}
         </p>
       )}

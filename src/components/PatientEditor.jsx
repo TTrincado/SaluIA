@@ -22,7 +22,7 @@ export default function PatientEditor({ initial }) {
 
   const badgeUrgent = useMemo(
     () =>
-      p.urgent ? "bg-health-ok/20 text-health-ok" : "bg-white/10 text-white/70",
+      p.urgent ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600",
     [p.urgent]
   );
 
@@ -38,22 +38,22 @@ export default function PatientEditor({ initial }) {
   return (
     <div className="grid gap-6 p-6 md:grid-cols-2">
       <div>
-        <h2 className="text-lg font-semibold mb-2">Datos del paciente</h2>
-        <ul className="space-y-1 text-white/80">
+        <h2 className="text-lg font-semibold mb-2 text-health-text">Datos del paciente</h2>
+        <ul className="space-y-1 text-health-text">
           <li>
-            <span className="text-white/50">Nombre:</span> {p.name}
+            <span className="text-health-text-muted">Nombre:</span> {p.name}
           </li>
           <li>
-            <span className="text-white/50">RUT:</span> {p.rut}
+            <span className="text-health-text-muted">RUT:</span> {p.rut}
           </li>
           <li>
-            <span className="text-white/50">Edad:</span> {p.age}
+            <span className="text-health-text-muted">Edad:</span> {p.age}
           </li>
           <li>
-            <span className="text-white/50">Médico:</span> {p.doctor}
+            <span className="text-health-text-muted">Médico:</span> {p.doctor}
           </li>
           <li>
-            <span className="text-white/50">Ley de Urgencia:</span>
+            <span className="text-health-text-muted">Ley de Urgencia:</span>
             <span
               className={`ml-2 rounded-md px-2 py-0.5 text-xs ${badgeUrgent}`}
             >
@@ -61,13 +61,13 @@ export default function PatientEditor({ initial }) {
             </span>
             <button
               onClick={toggleUrgent}
-              className="ml-3 rounded-lg border border-white/10 px-2 py-1 text-xs hover:bg-white/10"
+              className="ml-3 rounded-lg border border-health-border px-2 py-1 text-xs hover:bg-gray-50 text-health-text"
             >
               Cambiar a {p.urgent ? "No" : "Sí"}
             </button>
           </li>
           <li className="mt-2">
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+            <label className="inline-flex items-center gap-2 cursor-pointer select-none text-health-text">
               <input
                 type="checkbox"
                 checked={p.presentFirst}
@@ -77,11 +77,11 @@ export default function PatientEditor({ initial }) {
             </label>
           </li>
           <li className="mt-2">
-            <label className="text-white/50 mr-2">Signos vitales:</label>
+            <label className="text-health-text-muted mr-2">Signos vitales:</label>
             <select
               value={p.vitals}
               onChange={(e) => setVitals(e.target.value)}
-              className="rounded-lg bg-black/40 border border-white/10 px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent"
+              className="rounded-lg bg-white border border-health-border px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent text-health-text"
             >
               <option value="Estable">Estable</option>
               <option value="Crítico">Crítico</option>
@@ -92,16 +92,16 @@ export default function PatientEditor({ initial }) {
 
         <button
           onClick={handleSave}
-          className="mt-4 rounded-lg bg-health-accent text-black px-4 py-2 font-medium hover:bg-health-accent-dark transition"
+          className="mt-4 rounded-lg bg-health-accent text-white px-4 py-2 font-medium hover:bg-health-accent-dark transition"
         >
           Guardar cambios
         </button>
-        <p id="saveMsg" className="text-xs text-health-ok mt-2"></p>
+        <p id="saveMsg" className="text-xs text-green-600 mt-2"></p>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold mb-2">Notas clínicas</h2>
-        <p className="text-white/75 leading-relaxed">
+        <h2 className="text-lg font-semibold mb-2 text-health-text">Notas clínicas</h2>
+        <p className="text-health-text leading-relaxed">
           Motivo consulta: cefalea súbita, Glasgow 15, PA 150/90, FC 92, SpO₂
           98%.
           <br /> Exámenes previos: TAC simple normal, EKG sin alteraciones.

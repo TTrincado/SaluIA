@@ -41,7 +41,7 @@ export default function MetricsDashboard() {
 
   if (!metrics) {
     return (
-      <div className="text-white/70 text-center py-8">
+      <div className="text-health-text-muted text-center py-8">
         Cargando métricas...
       </div>
     );
@@ -60,22 +60,22 @@ export default function MetricsDashboard() {
   return (
     <div className="space-y-6">
       {/* Header con info del usuario */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+      <div className="bg-white border border-health-border rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">
+            <h2 className="text-2xl font-bold text-health-text mb-1">
               Tus Métricas Personales
             </h2>
-            <p className="text-white/60 text-sm">
+            <p className="text-health-text-muted text-sm">
               {userName} • {roleLabels[userRole] || 'Médico'}
             </p>
           </div>
-          
+
           {/* Selector de rango de fechas (UI only) */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-white/60">Período:</span>
-            <select 
-              className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-health-accent"
+            <span className="text-sm text-health-text-muted">Período:</span>
+            <select
+              className="bg-white border border-health-border rounded-lg px-3 py-2 text-sm text-health-text outline-none focus:ring-2 focus:ring-health-accent"
               defaultValue="all"
             >
               <option value="all">Todos los tiempos</option>
@@ -120,23 +120,23 @@ export default function MetricsDashboard() {
       </div>
 
       {/* Desglose detallado de rechazos de aseguradora */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">
+      <div className="bg-white border border-health-border rounded-2xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-health-text mb-4">
           Desglose de Rechazos de Aseguradora
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Aprobados por supervisor pero rechazados por aseguradora */}
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-white/60 mb-1">
+                <p className="text-sm text-health-text-muted mb-1">
                   Aprobados por Supervisor
                 </p>
-                <p className="text-2xl font-bold text-red-400">
+                <p className="text-2xl font-bold text-red-600">
                   {metrics.rechazosAseguradora.aprobadosPorSupervisor}
                 </p>
-                <p className="text-xs text-white/50 mt-2">
+                <p className="text-xs text-health-text-muted mt-2">
                   Estos casos pueden ser disputables con la aseguradora
                 </p>
               </div>
@@ -145,16 +145,16 @@ export default function MetricsDashboard() {
           </div>
 
           {/* Rechazados por supervisor Y por aseguradora */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="bg-gray-50 border border-health-border rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-white/60 mb-1">
+                <p className="text-sm text-health-text-muted mb-1">
                   Rechazados por Supervisor
                 </p>
-                <p className="text-2xl font-bold text-white/70">
+                <p className="text-2xl font-bold text-health-text">
                   {metrics.rechazosAseguradora.rechazadosPorSupervisor}
                 </p>
-                <p className="text-xs text-white/50 mt-2">
+                <p className="text-xs text-health-text-muted mt-2">
                   Rechazados en ambas instancias de revisión
                 </p>
               </div>
