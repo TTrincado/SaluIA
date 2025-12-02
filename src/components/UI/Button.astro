@@ -1,8 +1,8 @@
 ---
 const { href, as = "a", disabled = false } = Astro.props;
 const base = "inline-flex items-center justify-center rounded-xl px-6 py-3 font-medium transition";
-const enabled = "bg-health-accent hover:bg-health-accentDark text-black";
-const off = "bg-white/10 text-white/40 cursor-not-allowed";
+const enabled = "bg-health-accent hover:bg-health-accent-dark text-white";
+const off = "bg-gray-200 text-gray-400 cursor-not-allowed";
 const cls = `${base} ${disabled ? off : enabled}`;
 ---
 {as === "a" ? (

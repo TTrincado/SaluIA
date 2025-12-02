@@ -102,7 +102,7 @@ export default function ConsultTable() {
   if (loading && clinicalAttentions.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-white/70">Cargando...</div>
+        <div className="text-health-text-muted">Cargando...</div>
       </div>
     );
   }
@@ -110,43 +110,46 @@ export default function ConsultTable() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-red-400">{error}</div>
+        <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-2xl border border-health-border">
         <table className="w-full text-sm">
-          <thead className="bg-black/30">
-            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
-              <th>Fecha de creación</th>
-              <th>ID Episodio</th>
+          <thead className="bg-gray-50">
+            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-health-text [&>th]:whitespace-nowrap">
+              <th>Fecha</th>
+              <th># Episodio</th>
               <th>Nombre Paciente</th>
               <th>RUT</th>
-              <th>Médico Residente</th>
-              <th>Médico Supervisor</th>
-              <th>Aprobado Por Medico</th>
               <th>Ley Urgencia</th>
-              <th>Resultado IA</th>
-              <th>Ultima actualización</th>
+              <th>Análisis IA</th>
+              <th>Validación Médico</th>
+              <th>Validación Supervisor</th>
+              <th>Médico Residente</th>
+              <th>Supervisor</th>
               <th></th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-health-border bg-white">
             {clinicalAttentions.map((r) => {
-              const isEditing = editingId === r.id;
+              const isPendingUrgencyLaw = r.ai_result !== true && r.ai_result !== false;
+              const doesUrgencyLawApply = (r.ai_result === true && r.medic_approved === false) || (
+                r.ai_result === false && r.medic_approved === true
+              );
 
               return (
-                <tr key={r.id} className="hover:bg-white/5">
+                <tr key={r.id} className="hover:bg-gray-50 text-health-text">
                   <td className="px-4 py-3 whitespace-nowrap">
                     {formatDate(r.created_at)}
                   </td>
 
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {r.id_episodio ? r.id_episodio : r.id}
+                  <td className="px-4 py-3 whitespace-nowrap max-w-[150px] overflow-hidden text-ellipsis">
+                    {r.id_episodio ? r.id_episodio : "-"}
                   </td>
 
 
@@ -159,6 +162,58 @@ export default function ConsultTable() {
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
+                    <span
+                      className={`rounded-md px-2 py-1 text-xs ${
+                        isPendingUrgencyLaw
+                          ? "bg-gray-100 text-gray-600"
+                          : doesUrgencyLawApply
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {
+                        isPendingUrgencyLaw
+                          ? "Pendiente"
+                          : doesUrgencyLawApply
+                            ? "Aplica"
+                            : "No aplica"
+                      }
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span
+                      className={`rounded-md px-2 py-1 text-xs ${
+                        r.applies_urgency_law === true
+                          ? "bg-green-100 text-green-700"
+                          : r.applies_urgency_law === false
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {r.applies_urgency_law === true
+                        ? "Aplica"
+                        : r.applies_urgency_law === false
+                        ? "No aplica"
+                        : "Pendiente"}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    Por implementar
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span
+                      className={`rounded-md px-2 py-1 text-xs ${
+                        r.ai_result && r.medic_approved === false ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {r.ai_result && r.medic_approved === false ? "Objetado" : "-"}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap">
                     {r.resident_doctor.first_name}{" "}
                     {r.resident_doctor.last_name}
                   </td>
@@ -166,107 +221,6 @@ export default function ConsultTable() {
                   <td className="px-4 py-3 whitespace-nowrap">
                     {r.supervisor_doctor.first_name}{" "}
                     {r.supervisor_doctor.last_name}
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`rounded-md px-2 py-1 text-xs ${
-                        r.medic_approved === true
-                          ? "bg-green-500/20 text-green-400"
-                          : r.medic_approved === false
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-white/10 text-white/70"
-                      }`}
-                    >
-                      {r.medic_approved === true
-                        ? "Aprobado"
-                        : r.medic_approved === false
-                        ? "Rechazado"
-                        : "Pendiente"}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {isEditing ? (
-                      <div className="flex items-center gap-2">
-                        <select
-                          className="rounded bg-black/40 border border-white/10 text-xs px-1 py-1 text-white outline-none focus:ring-1 focus:ring-health-accent"
-                          value={
-                            tempUrgencyLaw === null ? "" : String(tempUrgencyLaw)
-                          }
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setTempUrgencyLaw(
-                              val === "" ? null : val === "true"
-                            );
-                          }}
-                          disabled={isSaving}
-                        >
-                          <option value="true">Sí</option>
-                          <option value="false">No</option>
-                          <option value="">Pendiente</option>
-                        </select>
-
-                        <button
-                          onClick={() => saveUrgencyLaw(r.id)}
-                          disabled={isSaving}
-                          className="text-green-400 hover:text-green-300 text-xs font-bold"
-                        >
-                          {isSaving ? "..." : "✓"}
-                        </button>
-                        <button
-                          onClick={cancelEditing}
-                          disabled={isSaving}
-                          className="text-red-400 hover:text-red-300 text-xs font-bold"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => startEditing(r)}
-                        className="cursor-pointer hover:opacity-80"
-                        title="Click para editar"
-                      >
-                        <span
-                          className={`rounded-md px-2 py-1 text-xs ${
-                            r.applies_urgency_law === true
-                              ? "bg-health-ok/20 text-health-ok"
-                              : r.applies_urgency_law === false
-                              ? "bg-red-500/20 text-red-400"
-                              : "bg-white/10 text-white/70"
-                          }`}
-                        >
-                          {r.applies_urgency_law === true
-                            ? "Sí"
-                            : r.applies_urgency_law === false
-                            ? "No"
-                            : "Pendiente"}
-                        </span>
-                      </div>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`rounded-md px-2 py-1 text-xs ${
-                        r.ai_result === true
-                          ? "bg-health-ok/20 text-health-ok"
-                          : r.ai_result === false
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-white/10 text-white/70"
-                      }`}
-                    >
-                      {r.ai_result === true
-                        ? "Aplica"
-                        : r.ai_result === false
-                        ? "No Aplica"
-                        : "Pendiente"}
-                    </span>
-                  </td>
-
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {formatDate(r.updated_at)}
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -285,7 +239,7 @@ export default function ConsultTable() {
               <tr>
                 <td
                   colSpan={11}
-                  className="px-4 py-6 text-white/60 text-center"
+                  className="px-4 py-6 text-health-text-muted text-center"
                 >
                   No hay registros.
                 </td>
@@ -296,14 +250,14 @@ export default function ConsultTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-white/70">
+      <div className="flex items-center justify-between text-sm text-health-text-muted">
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <span>Registros por página:</span>
             <select
               value={pageSize}
               onChange={handlePageSizeChange}
-              className="rounded-lg bg-black/40 border border-white/10 px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent"
+              className="rounded-lg bg-white border border-health-border px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent text-health-text"
             >
               <option value={2}>2</option>
               <option value={10}>10</option>
@@ -325,7 +279,7 @@ export default function ConsultTable() {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 transition"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 transition text-health-text"
           >
             Anterior
           </button>
@@ -333,7 +287,7 @@ export default function ConsultTable() {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 transition"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 transition text-health-text"
           >
             Siguiente
           </button>

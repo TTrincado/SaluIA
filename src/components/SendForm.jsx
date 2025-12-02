@@ -157,26 +157,26 @@ ${diagnosticoPresuntivo || "No registrado"}
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-white/70">ID Episodio (opcional)</label>
+        <label className="text-sm text-health-text-muted">ID Episodio (opcional)</label>
         <input
           type="text"
           value={idEpisodio}
           onChange={(e) => setIdEpisodio(e.target.value)}
           placeholder=""
-          className="rounded-lg bg-black/40 border border-white/10 px-3 py-2"
+          className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text"
         />
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-health-text-muted">
         </p>
       </div>
       {/* IDs */}
       <div className="grid gap-4 grid-cols-3">
         {/* Paciente */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-white/70">Paciente *</label>
+          <label className="text-sm text-health-text-muted">Paciente *</label>
           <select
             value={patientId}
             onChange={(e) => setPatientId(e.target.value)}
-            className="rounded-lg bg-black/40 border border-white/10 px-3 py-2"
+            className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10"
             required
             disabled={patientsLoading}
           >
@@ -193,11 +193,11 @@ ${diagnosticoPresuntivo || "No registrado"}
 
         {/* Residente */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-white/70">Médico Residente *</label>
+          <label className="text-sm text-health-text-muted">Médico Residente *</label>
           <select
             value={residentDoctorId}
             onChange={(e) => setResidentDoctorId(e.target.value)}
-            className="rounded-lg bg-black/40 border border-white/10 px-3 py-2"
+            className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10"
             required
             disabled={medicsLoading}
           >
@@ -214,11 +214,11 @@ ${diagnosticoPresuntivo || "No registrado"}
 
         {/* Supervisor */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-white/70">Médico Supervisor *</label>
+          <label className="text-sm text-health-text-muted">Médico Supervisor *</label>
           <select
             value={supervisorDoctorId}
             onChange={(e) => setSupervisorDoctorId(e.target.value)}
-            className="rounded-lg bg-black/40 border border-white/10 px-3 py-2"
+            className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10"
             required
             disabled={medicsLoading}
           >
@@ -236,30 +236,30 @@ ${diagnosticoPresuntivo || "No registrado"}
 
       {/* Errores */}
       {patientsError && (
-        <div className="rounded-lg bg-red-500/20 border border-red-500/50 px-4 py-3 text-red-400">
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-600">
           {patientsError}
         </div>
       )}
       {medicsError && (
-        <div className="rounded-lg bg-red-500/20 border border-red-500/50 px-4 py-3 text-red-400">
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-600">
           {medicsError}
         </div>
       )}
 
       {/* ANAMNESIS */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-white/70">Anamnesis *</label>
+        <label className="text-sm text-health-text-muted">Anamnesis *</label>
         <textarea
           value={anamnesis}
           onChange={(e) => setAnamnesis(e.target.value)}
-          className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 min-h-32"
+          className="rounded-lg bg-white border border-health-border px-3 py-2 min-h-32 text-health-text"
           required
         />
       </div>
 
       {/* SIGNOS VITALES */}
       <div className="space-y-3">
-        <h3 className="text-white/80 font-semibold">Signos Vitales</h3>
+        <h3 className="text-health-text font-semibold">Signos Vitales</h3>
 
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -274,12 +274,12 @@ ${diagnosticoPresuntivo || "No registrado"}
             ["glicemia_capilar", "Glicemia Capilar"],
           ].map(([field, label]) => (
             <div key={field} className="flex flex-col gap-1">
-              <label className="text-xs text-white/60">{label}</label>
+              <label className="text-xs text-health-text-muted">{label}</label>
               <input
                 type="number"
                 value={vitales[field]}
                 onChange={(e) => updateVital(field, e.target.value)}
-                className="rounded-lg bg-black/40 border border-white/10 px-3 py-2"
+                className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text"
               />
             </div>
           ))}
@@ -288,37 +288,37 @@ ${diagnosticoPresuntivo || "No registrado"}
 
       {/* HALLAZGOS */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-white/70">Hallazgos Clínicos</label>
+        <label className="text-sm text-health-text-muted">Hallazgos Clínicos</label>
         <textarea
           value={hallazgosClinicos}
           onChange={(e) => setHallazgosClinicos(e.target.value)}
-          className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 min-h-32"
+          className="rounded-lg bg-white border border-health-border px-3 py-2 min-h-32 text-health-text"
         />
       </div>
 
       {/* DIAGNOSTICO */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-white/70">Diagnóstico Presuntivo *</label>
+        <label className="text-sm text-health-text-muted">Diagnóstico Presuntivo *</label>
         <textarea
           value={diagnosticoPresuntivo}
           onChange={(e) => setDiagnosticoPresuntivo(e.target.value)}
-          className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 min-h-32"
+          className="rounded-lg bg-white border border-health-border px-3 py-2 min-h-32 text-health-text"
           required
         />
       </div>
 
       {/* INDICACIONES */}
-      
+
 
       {/* Mensajes */}
       {error && (
-        <div className="rounded-lg bg-red-500/20 border border-red-500/50 px-4 py-3 text-red-400">
+        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-600">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg bg-green-500/20 border border-green-500/50 px-4 py-3 text-green-300">
+        <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-green-600">
           ¡Atención clínica creada! Redirigiendo...
         </div>
       )}
@@ -329,8 +329,8 @@ ${diagnosticoPresuntivo || "No registrado"}
         disabled={!isFormValid || loading}
         className={`w-full rounded-xl px-6 py-3 font-medium transition ${
           isFormValid && !loading
-            ? "bg-health-accent text-black hover:bg-health-accentDark"
-            : "bg-white/10 text-white/40 cursor-not-allowed"
+            ? "bg-health-accent text-white hover:bg-health-accent-dark"
+            : "bg-gray-200 text-gray-400 cursor-not-allowed"
         }`}
       >
         {loading ? "Creando..." : "Crear Atención Clínica"}

@@ -67,39 +67,39 @@ export default function CreateInsuranceCompany() {
       <div className="space-y-4">
         {/* Nombre Comercial */}
         <div>
-          <label className="text-white/60 text-sm">Nombre Comercial</label>
+          <label className="text-health-text-muted text-sm">Nombre Comercial</label>
           <input
             type="text"
             value={nombreComercial}
             onChange={(e) => setNombreComercial(e.target.value)}
-            className="w-full mt-1 bg-black/20 border border-white/10 text-white rounded-lg 
+            className="w-full mt-1 bg-white border border-health-border text-health-text rounded-lg
                        px-3 py-2 outline-none focus:ring-2 focus:ring-health-accent"
           />
         </div>
 
         {/* Nombre Jurídico */}
         <div>
-          <label className="text-white/60 text-sm">
-            Razón Social <span className="text-red-400">*</span>
+          <label className="text-health-text-muted text-sm">
+            Razón Social <span className="text-red-600">*</span>
           </label>
           <input
             type="text"
             required
             value={nombreJuridico}
             onChange={(e) => setNombreJuridico(e.target.value)}
-            className="w-full mt-1 bg-black/20 border border-white/10 text-white rounded-lg 
+            className="w-full mt-1 bg-white border border-health-border text-health-text rounded-lg
                        px-3 py-2 outline-none focus:ring-2 focus:ring-health-accent"
           />
         </div>
 
         {/* RUT */}
         <div>
-          <label className="text-white/60 text-sm">RUT</label>
+          <label className="text-health-text-muted text-sm">RUT</label>
           <input
             type="text"
             value={rut}
             onChange={(e) => setRut(e.target.value)}
-            className="w-full mt-1 bg-black/20 border border-white/10 text-white rounded-lg 
+            className="w-full mt-1 bg-white border border-health-border text-health-text rounded-lg
                        px-3 py-2 outline-none focus:ring-2 focus:ring-health-accent"
           />
         </div>
@@ -110,7 +110,7 @@ export default function CreateInsuranceCompany() {
         <button
           type="submit"
           disabled={loading}
-          className="px-5 py-2 bg-health-accent text-black rounded-lg font-medium
+          className="px-5 py-2 bg-health-accent text-white rounded-lg font-medium
                      hover:bg-health-accent-dark transition shadow-lg shadow-health-accent/10
                      disabled:opacity-50"
         >
