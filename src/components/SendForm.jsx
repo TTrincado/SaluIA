@@ -6,6 +6,9 @@ export default function SendForm() {
   const [residentDoctorId, setResidentDoctorId] = useState("");
   const [supervisorDoctorId, setSupervisorDoctorId] = useState("");
 
+  const [isResidentLocked, setIsResidentLocked] = useState(false);
+  const [isSupervisorLocked, setIsSupervisorLocked] = useState(false);
+
   const [medics, setMedics] = useState({ resident: [], supervisor: [] });
   const [medicsLoading, setMedicsLoading] = useState(false);
   const [medicsError, setMedicsError] = useState(null);
@@ -15,13 +18,12 @@ export default function SendForm() {
   const [patientsLoading, setPatientsLoading] = useState(false);
   const [patientsError, setPatientsError] = useState(null);
 
-  // Campos clínicos
+  // Clinical fields
   const [anamnesis, setAnamnesis] = useState("");
   const [hallazgosClinicos, setHallazgosClinicos] = useState("");
   const [diagnosticoPresuntivo, setDiagnosticoPresuntivo] = useState("");
-  const [indicaciones, setIndicaciones] = useState("");
 
-  // 🔥 Signos vitales con valores normales
+  // Vital signs
   const [vitales, setVitales] = useState({
     temperatura: 36.8,
     presion_arterial_sistolica: 120,
@@ -39,6 +41,29 @@ export default function SendForm() {
   };
 
   useEffect(() => {
+    try {
+      const sessionStr = localStorage.getItem("saluia.session");
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        const userId = session.user?.id;
+        const role = session.user?.user_metadata?.role;
+
+        if (userId && role) {
+          if (role === "resident") {
+            setResidentDoctorId(userId);
+            setIsResidentLocked(true);
+          } else if (role === "supervisor") {
+            setSupervisorDoctorId(userId);
+            setIsSupervisorLocked(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error auto-selecting user from session:", error);
+    }
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
 
     const loadMedics = async () => {
@@ -50,11 +75,13 @@ export default function SendForm() {
         if (resp.success && resp.data) {
           setMedics(resp.data);
         } else {
-          setMedicsError(resp.error || "No se pudieron cargar los médicos");
+          setMedicsError(resp.error || "Failed to load medics");
         }
       } catch (err) {
         if (!mounted) return;
-        setMedicsError(err instanceof Error ? err.message : "Error al cargar médicos");
+        setMedicsError(
+          err instanceof Error ? err.message : "Error loading medics"
+        );
       } finally {
         if (mounted) setMedicsLoading(false);
       }
@@ -69,11 +96,13 @@ export default function SendForm() {
         if (resp.success && resp.data && Array.isArray(resp.data.patients)) {
           setPatients(resp.data.patients);
         } else {
-          setPatientsError(resp.error || "No se pudieron cargar los pacientes");
+          setPatientsError(resp.error || "Failed to load patients");
         }
       } catch (err) {
         if (!mounted) return;
-        setPatientsError(err instanceof Error ? err.message : "Error al cargar pacientes");
+        setPatientsError(
+          err instanceof Error ? err.message : "Error loading patients"
+        );
       } finally {
         if (mounted) setPatientsLoading(false);
       }
@@ -89,7 +118,6 @@ export default function SendForm() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // 🔥 Construcción del TXT clínico
   const buildClinicalTXT = () => {
     return `
 ===== ANAMNESIS =====
@@ -97,7 +125,9 @@ ${anamnesis || "No registrado"}
 
 ===== SIGNOS VITALES =====
 Temperatura: ${vitales.temperatura}
-Presión Arterial: ${vitales.presion_arterial_sistolica}/${vitales.presion_arterial_diastolica}
+Presión Arterial: ${vitales.presion_arterial_sistolica}/${
+      vitales.presion_arterial_diastolica
+    }
 Frecuencia Cardíaca: ${vitales.frecuencia_cardiaca}
 Frecuencia Respiratoria: ${vitales.frecuencia_respiratoria}
 Saturación O2: ${vitales.saturacion_oxigeno}
@@ -128,8 +158,8 @@ ${diagnosticoPresuntivo || "No registrado"}
         patient_id: patientId,
         resident_doctor_id: residentDoctorId,
         supervisor_doctor_id: supervisorDoctorId,
-        diagnostic:clinicalTxt
-        ,id_episodio: idEpisodio
+        diagnostic: clinicalTxt,
+        id_episodio: idEpisodio,
       });
 
       if (response.success && response.data) {
@@ -138,10 +168,10 @@ ${diagnosticoPresuntivo || "No registrado"}
           window.location.href = `/clinical_attentions/details/${response.data.id}`;
         }, 1500);
       } else {
-        setError(response.error || "Error al crear la atención clínica");
+        setError(response.error || "Error creating clinical attention");
       }
     } catch (err) {
-      setError("Error al crear la atención clínica");
+      setError("Error creating clinical attention");
     } finally {
       setLoading(false);
     }
@@ -157,7 +187,9 @@ ${diagnosticoPresuntivo || "No registrado"}
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-health-text-muted">ID Episodio (opcional)</label>
+        <label className="text-sm text-health-text-muted">
+          ID Episodio (opcional)
+        </label>
         <input
           type="text"
           value={idEpisodio}
@@ -165,12 +197,11 @@ ${diagnosticoPresuntivo || "No registrado"}
           placeholder=""
           className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text"
         />
-        <p className="text-xs text-health-text-muted">
-        </p>
       </div>
+
       {/* IDs */}
-      <div className="grid gap-4 grid-cols-3">
-        {/* Paciente */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        {/* Patient */}
         <div className="flex flex-col gap-2">
           <label className="text-sm text-health-text-muted">Paciente *</label>
           <select
@@ -181,7 +212,9 @@ ${diagnosticoPresuntivo || "No registrado"}
             disabled={patientsLoading}
           >
             <option value="">
-              {patientsLoading ? "Cargando pacientes..." : "Selecciona un paciente"}
+              {patientsLoading
+                ? "Cargando pacientes..."
+                : "Selecciona un paciente"}
             </option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
@@ -191,18 +224,26 @@ ${diagnosticoPresuntivo || "No registrado"}
           </select>
         </div>
 
-        {/* Residente */}
+        {/* Resident - Updated logic */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-health-text-muted">Médico Residente *</label>
+          <label className="text-sm text-health-text-muted">
+            Médico Residente *
+          </label>
           <select
             value={residentDoctorId}
             onChange={(e) => setResidentDoctorId(e.target.value)}
-            className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10"
+            className={`rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10 ${
+              isResidentLocked
+                ? "bg-gray-100 opacity-70 cursor-not-allowed"
+                : ""
+            }`}
             required
-            disabled={medicsLoading}
+            disabled={medicsLoading || isResidentLocked} // Locked if session matches
           >
             <option value="">
-              {medicsLoading ? "Cargando médicos..." : "Selecciona un residente"}
+              {medicsLoading
+                ? "Cargando médicos..."
+                : "Selecciona un residente"}
             </option>
             {medics.resident.map((d) => (
               <option key={d.id} value={d.id}>
@@ -212,18 +253,26 @@ ${diagnosticoPresuntivo || "No registrado"}
           </select>
         </div>
 
-        {/* Supervisor */}
+        {/* Supervisor - Updated logic */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm text-health-text-muted">Médico Supervisor *</label>
+          <label className="text-sm text-health-text-muted">
+            Médico Supervisor *
+          </label>
           <select
             value={supervisorDoctorId}
             onChange={(e) => setSupervisorDoctorId(e.target.value)}
-            className="rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10"
+            className={`rounded-lg bg-white border border-health-border px-3 py-2 text-health-text h-10 ${
+              isSupervisorLocked
+                ? "bg-gray-100 opacity-70 cursor-not-allowed"
+                : ""
+            }`}
             required
-            disabled={medicsLoading}
+            disabled={medicsLoading || isSupervisorLocked} // Locked if session matches
           >
             <option value="">
-              {medicsLoading ? "Cargando médicos..." : "Selecciona un supervisor"}
+              {medicsLoading
+                ? "Cargando médicos..."
+                : "Selecciona un supervisor"}
             </option>
             {medics.supervisor.map((d) => (
               <option key={d.id} value={d.id}>
@@ -234,7 +283,7 @@ ${diagnosticoPresuntivo || "No registrado"}
         </div>
       </div>
 
-      {/* Errores */}
+      {/* Errors */}
       {patientsError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-600">
           {patientsError}
@@ -257,11 +306,11 @@ ${diagnosticoPresuntivo || "No registrado"}
         />
       </div>
 
-      {/* SIGNOS VITALES */}
+      {/* VITAL SIGNS */}
       <div className="space-y-3">
         <h3 className="text-health-text font-semibold">Signos Vitales</h3>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[
             ["temperatura", "Temperatura (°C)"],
             ["presion_arterial_sistolica", "Presión Sistólica"],
@@ -286,9 +335,11 @@ ${diagnosticoPresuntivo || "No registrado"}
         </div>
       </div>
 
-      {/* HALLAZGOS */}
+      {/* FINDINGS */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-health-text-muted">Hallazgos Clínicos</label>
+        <label className="text-sm text-health-text-muted">
+          Hallazgos Clínicos
+        </label>
         <textarea
           value={hallazgosClinicos}
           onChange={(e) => setHallazgosClinicos(e.target.value)}
@@ -296,9 +347,11 @@ ${diagnosticoPresuntivo || "No registrado"}
         />
       </div>
 
-      {/* DIAGNOSTICO */}
+      {/* DIAGNOSTIC */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm text-health-text-muted">Diagnóstico Presuntivo *</label>
+        <label className="text-sm text-health-text-muted">
+          Diagnóstico Presuntivo *
+        </label>
         <textarea
           value={diagnosticoPresuntivo}
           onChange={(e) => setDiagnosticoPresuntivo(e.target.value)}
@@ -307,10 +360,7 @@ ${diagnosticoPresuntivo || "No registrado"}
         />
       </div>
 
-      {/* INDICACIONES */}
-
-
-      {/* Mensajes */}
+      {/* Messages */}
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-600">
           {error}
@@ -323,7 +373,7 @@ ${diagnosticoPresuntivo || "No registrado"}
         </div>
       )}
 
-      {/* BOTÓN */}
+      {/* BUTTON */}
       <button
         type="submit"
         disabled={!isFormValid || loading}
