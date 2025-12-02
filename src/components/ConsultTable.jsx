@@ -264,7 +264,7 @@ export default function ConsultTable() {
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap max-w-[150px] overflow-hidden text-ellipsis">
-                    {r.id_episodio ? r.id_episodio : "-"}
+                    {r.id_episodio || "No informado"}
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap">
