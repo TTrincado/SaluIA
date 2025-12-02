@@ -71,12 +71,12 @@ export default function InsuranceCompanyTable() {
 
   if (loading)
     return (
-      <div className="py-12 flex justify-center text-white/70">Cargando...</div>
+      <div className="py-12 flex justify-center text-health-text-muted">Cargando...</div>
     );
 
   if (error)
     return (
-      <div className="py-12 flex justify-center text-red-400">{error}</div>
+      <div className="py-12 flex justify-center text-red-600">{error}</div>
     );
 
   return (
@@ -87,7 +87,7 @@ export default function InsuranceCompanyTable() {
 
   {/* Selector Autocomplete */}
   <div className="flex flex-col w-full md:w-1/3">
-    <label className="text-white/70 text-sm mb-1">Aseguradora</label>
+    <label className="text-health-text-muted text-sm mb-1">Aseguradora</label>
 
     <AutocompleteSelect
       value={selectedCompany}
@@ -99,15 +99,15 @@ export default function InsuranceCompanyTable() {
 
   {/* INPUT FILE custom */}
   <div className="flex flex-col w-full md:w-1/3">
-    <label className="text-white/70 text-sm mb-1">Archivo Excel (.xlsx)</label>
+    <label className="text-health-text-muted text-sm mb-1">Archivo Excel (.xlsx)</label>
 
     <label className="
       cursor-pointer
-      bg-white/10 hover:bg-white/20
-      border border-white/10
+      bg-white hover:bg-gray-50
+      border border-health-border
       rounded-lg
       px-4 py-2
-      text-white/90
+      text-health-text
       text-sm
       flex items-center justify-between
     ">
@@ -126,12 +126,12 @@ export default function InsuranceCompanyTable() {
   <button
     onClick={handleExcelUpload}
     className="
-      bg-health-accent 
-      text-black 
-      font-semibold 
-      rounded-lg 
+      bg-health-accent
+      text-white
+      font-semibold
+      rounded-lg
       px-5 py-2
-      hover:brightness-110
+      hover:bg-health-accent-dark
       transition
       shadow-md
       w-full md:w-auto
@@ -143,10 +143,10 @@ export default function InsuranceCompanyTable() {
 
 
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-2xl border border-health-border">
         <table className="w-full text-sm">
-          <thead className="bg-black/30">
-            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
+          <thead className="bg-gray-50">
+            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-health-text [&>th]:whitespace-nowrap">
               <th>ID</th>
               <th>Nombre Comercial</th>
               <th>Razón Social</th>
@@ -155,9 +155,9 @@ export default function InsuranceCompanyTable() {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-health-border bg-white">
             {companies.map((c) => (
-              <tr key={c.id} className="hover:bg-white/5">
+              <tr key={c.id} className="hover:bg-gray-50 text-health-text">
                 <td className="px-4 py-3">{c.id}</td>
 
                 <td className="px-4 py-3">{c.nombre_comercial || "—"}</td>
@@ -181,7 +181,7 @@ export default function InsuranceCompanyTable() {
               <tr>
                 <td
                   colSpan={5}
-                  className="text-center py-6 text-white/60"
+                  className="text-center py-6 text-health-text-muted"
                 >
                   No hay aseguradoras registradas.
                 </td>
@@ -192,12 +192,12 @@ export default function InsuranceCompanyTable() {
       </div>
 
       {/* PAGINACIÓN */}
-      <div className="flex items-center justify-between text-sm text-white/70">
+      <div className="flex items-center justify-between text-sm text-health-text-muted">
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <span>Registros por página:</span>
             <select
-              className="rounded-lg bg-black/40 border border-white/10 px-3 py-1 outline-none"
+              className="rounded-lg bg-white border border-health-border px-3 py-1 outline-none text-health-text"
               value={pageSize}
               onChange={(e) => {
                 setPageSize(+e.target.value);
@@ -224,7 +224,7 @@ export default function InsuranceCompanyTable() {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 text-health-text"
           >
             Anterior
           </button>
@@ -232,7 +232,7 @@ export default function InsuranceCompanyTable() {
           <button
             disabled={currentPage === totalPages || totalPages === 0}
             onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 text-health-text"
           >
             Siguiente
           </button>

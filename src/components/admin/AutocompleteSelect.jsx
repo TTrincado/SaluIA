@@ -37,7 +37,7 @@ export default function AutocompleteSelect({
       {/* Input Visible */}
       <input
         type="text"
-        className="w-full bg-white/10 border border-white/20 rounded p-2 text-white"
+        className="w-full bg-white border border-health-border rounded p-2 text-health-text"
         placeholder={placeholder}
         value={
           open ? query : selectedInsurance
@@ -53,9 +53,9 @@ export default function AutocompleteSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-auto bg-[#0f172a] border border-white/10 rounded shadow-xl z-50">
+        <div className="absolute left-0 right-0 mt-1 max-h-60 overflow-auto bg-white border border-health-border rounded shadow-xl z-50">
           {filtered.length === 0 && (
-            <div className="p-3 text-white/40 text-sm">Sin resultados</div>
+            <div className="p-3 text-health-text-muted text-sm">Sin resultados</div>
           )}
 
           {filtered.map((o) => (
@@ -66,7 +66,7 @@ export default function AutocompleteSelect({
                 setQuery("");
                 setOpen(false);
               }}
-              className="px-3 py-2 cursor-pointer text-white hover:bg-health-accent hover:text-black text-sm"
+              className="px-3 py-2 cursor-pointer text-health-text hover:bg-health-accent hover:text-white text-sm"
             >
               {o.nombre_comercial || o.nombre_juridico}
             </div>

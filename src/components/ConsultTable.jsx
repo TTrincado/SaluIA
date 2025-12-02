@@ -102,7 +102,7 @@ export default function ConsultTable() {
   if (loading && clinicalAttentions.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-white/70">Cargando...</div>
+        <div className="text-health-text-muted">Cargando...</div>
       </div>
     );
   }
@@ -110,17 +110,17 @@ export default function ConsultTable() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-red-400">{error}</div>
+        <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
+      <div className="overflow-x-auto rounded-2xl border border-health-border">
         <table className="w-full text-sm">
-          <thead className="bg-black/30">
-            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-white/80 [&>th]:whitespace-nowrap">
+          <thead className="bg-gray-50">
+            <tr className="[&>th]:px-4 [&>th]:py-3 text-left text-health-text [&>th]:whitespace-nowrap">
               <th>Fecha de creación</th>
               <th>ID Episodio</th>
               <th>Nombre Paciente</th>
@@ -135,12 +135,12 @@ export default function ConsultTable() {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-health-border bg-white">
             {clinicalAttentions.map((r) => {
               const isEditing = editingId === r.id;
 
               return (
-                <tr key={r.id} className="hover:bg-white/5">
+                <tr key={r.id} className="hover:bg-gray-50 text-health-text">
                   <td className="px-4 py-3 whitespace-nowrap">
                     {formatDate(r.created_at)}
                   </td>
@@ -172,10 +172,10 @@ export default function ConsultTable() {
                     <span
                       className={`rounded-md px-2 py-1 text-xs ${
                         r.medic_approved === true
-                          ? "bg-green-500/20 text-green-400"
+                          ? "bg-green-100 text-green-700"
                           : r.medic_approved === false
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-white/10 text-white/70"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {r.medic_approved === true
@@ -190,7 +190,7 @@ export default function ConsultTable() {
                     {isEditing ? (
                       <div className="flex items-center gap-2">
                         <select
-                          className="rounded bg-black/40 border border-white/10 text-xs px-1 py-1 text-white outline-none focus:ring-1 focus:ring-health-accent"
+                          className="rounded bg-white border border-health-border text-xs px-1 py-1 text-health-text outline-none focus:ring-1 focus:ring-health-accent"
                           value={
                             tempUrgencyLaw === null ? "" : String(tempUrgencyLaw)
                           }
@@ -210,14 +210,14 @@ export default function ConsultTable() {
                         <button
                           onClick={() => saveUrgencyLaw(r.id)}
                           disabled={isSaving}
-                          className="text-green-400 hover:text-green-300 text-xs font-bold"
+                          className="text-green-600 hover:text-green-700 text-xs font-bold"
                         >
                           {isSaving ? "..." : "✓"}
                         </button>
                         <button
                           onClick={cancelEditing}
                           disabled={isSaving}
-                          className="text-red-400 hover:text-red-300 text-xs font-bold"
+                          className="text-red-600 hover:text-red-700 text-xs font-bold"
                         >
                           ✕
                         </button>
@@ -231,10 +231,10 @@ export default function ConsultTable() {
                         <span
                           className={`rounded-md px-2 py-1 text-xs ${
                             r.applies_urgency_law === true
-                              ? "bg-health-ok/20 text-health-ok"
+                              ? "bg-green-100 text-green-700"
                               : r.applies_urgency_law === false
-                              ? "bg-red-500/20 text-red-400"
-                              : "bg-white/10 text-white/70"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {r.applies_urgency_law === true
@@ -251,10 +251,10 @@ export default function ConsultTable() {
                     <span
                       className={`rounded-md px-2 py-1 text-xs ${
                         r.ai_result === true
-                          ? "bg-health-ok/20 text-health-ok"
+                          ? "bg-green-100 text-green-700"
                           : r.ai_result === false
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-white/10 text-white/70"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {r.ai_result === true
@@ -285,7 +285,7 @@ export default function ConsultTable() {
               <tr>
                 <td
                   colSpan={11}
-                  className="px-4 py-6 text-white/60 text-center"
+                  className="px-4 py-6 text-health-text-muted text-center"
                 >
                   No hay registros.
                 </td>
@@ -296,14 +296,14 @@ export default function ConsultTable() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-white/70">
+      <div className="flex items-center justify-between text-sm text-health-text-muted">
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
             <span>Registros por página:</span>
             <select
               value={pageSize}
               onChange={handlePageSizeChange}
-              className="rounded-lg bg-black/40 border border-white/10 px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent"
+              className="rounded-lg bg-white border border-health-border px-3 py-1 outline-none focus:ring-2 focus:ring-health-accent text-health-text"
             >
               <option value={2}>2</option>
               <option value={10}>10</option>
@@ -325,7 +325,7 @@ export default function ConsultTable() {
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 transition"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 transition text-health-text"
           >
             Anterior
           </button>
@@ -333,7 +333,7 @@ export default function ConsultTable() {
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 hover:bg-white/5 disabled:opacity-50 transition"
+            className="px-3 py-1 rounded-lg bg-white border border-health-border hover:bg-gray-50 disabled:opacity-50 transition text-health-text"
           >
             Siguiente
           </button>

@@ -43,36 +43,36 @@ import BaseLayout from "../layouts/Base.astro";
     <Card>
       <div class="p-6 md:p-8 flex flex-col items-center gap-6 text-center">
         <div>
-          <h2 class="text-2xl font-semibold mb-2">Acciones Rápidas</h2>
-          <p class="text-white/70 text-sm">
+          <h2 class="text-2xl font-semibold mb-2 text-health-text">Acciones Rápidas</h2>
+          <p class="text-health-text-muted text-sm">
             Selecciona una opción para gestionar episodios
           </p>
-        </div>
-
-        {/* Standard Actions (Fila 1) */}
-        <div class="grid gap-4 sm:grid-cols-2 w-full max-w-lg">
-          <a
-            href="/clinical_attentions"
-            class="rounded-2xl bg-health-accent text-black py-5 text-lg font-medium text-center transition hover:bg-health-accentDark"
-          >
-            Ver Episodio Clinicos
-          </a>
-          <a
-            href="/send"
-            class="rounded-2xl bg-white/10 text-white py-5 text-lg font-medium text-center transition hover:bg-white/20"
-          >
-            Crear Episodio Clinico
-          </a>
         </div>
 
         {/* Metrics Button (Solo para supervisores/admins) */}
         <a
           id="metrics-button"
           href="/admin/metrics"
-          class="hidden w-full max-w-lg rounded-2xl bg-gradient-to-r from-health-accent to-blue-500 text-black py-4 text-lg font-medium text-center transition hover:shadow-lg hover:scale-[1.02] border border-health-accent/30"
+          class="hidden w-full max-w-lg rounded-2xl bg-gradient-to-r from-health-accent to-health-secondary text-white py-4 text-lg font-medium text-center transition hover:shadow-lg hover:scale-[1.02] border border-health-accent/30"
         >
           📊 Ver Métricas de Todo el Equipo
         </a>
+
+        {/* Standard Actions (Fila 1) */}
+        <div class="grid gap-4 sm:grid-cols-2 w-full max-w-lg">
+          <a
+            href="/clinical_attentions"
+            class="rounded-2xl bg-health-accent text-white py-5 text-lg font-medium text-center transition hover:bg-health-accent-dark shadow-md"
+          >
+            Ver Episodio Clinicos
+          </a>
+          <a
+            href="/send"
+            class="rounded-2xl bg-health-secondary text-white py-5 text-lg font-medium text-center transition hover:bg-health-secondary-dark shadow-md"
+          >
+            Crear Episodio Clinico
+          </a>
+        </div>
 
         {/* Admin Actions (Fila 2) - Oculto por defecto, mismo Grid */}
         <div
@@ -81,13 +81,13 @@ import BaseLayout from "../layouts/Base.astro";
         >
           <a
             href="/admin/patients"
-            class="rounded-2xl bg-blue-600 text-white py-4 text-base font-medium text-center transition hover:bg-blue-700 shadow-lg border border-blue-400/30"
+            class="rounded-2xl bg-health-accent text-white py-4 text-base font-medium text-center transition hover:bg-health-accent-dark shadow-lg"
           >
             Ver Pacientes
           </a>
           <a
             href="/admin/users"
-            class="rounded-2xl bg-purple-600 text-white py-4 text-base font-medium text-center transition hover:bg-purple-700 shadow-lg border border-purple-400/30"
+            class="rounded-2xl bg-health-secondary text-white py-4 text-base font-medium text-center transition hover:bg-health-secondary-dark shadow-lg"
           >
             Ver Usuarios
           </a>

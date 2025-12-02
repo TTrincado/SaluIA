@@ -30,12 +30,12 @@ export default function InsuranceCompanyDetails({ id }) {
 
   if (loading)
     return (
-      <div className="py-20 text-center text-white/60">Cargando...</div>
+      <div className="py-20 text-center text-health-text-muted">Cargando...</div>
     );
 
   if (error || !company)
     return (
-      <div className="py-20 text-center text-red-400">{error}</div>
+      <div className="py-20 text-center text-red-600">{error}</div>
     );
 
   return (
@@ -51,7 +51,7 @@ export default function InsuranceCompanyDetails({ id }) {
         <div className="flex gap-3">
           <button
             onClick={() => setShowEditModal(true)}
-            className="rounded-lg bg-health-accent text-black px-4 py-2 text-sm hover:bg-health-accent-dark shadow-md"
+            className="rounded-lg bg-health-accent text-white px-4 py-2 text-sm hover:bg-health-accent-dark shadow-md"
           >
             Editar
           </button>
@@ -66,24 +66,24 @@ export default function InsuranceCompanyDetails({ id }) {
       </div>
 
       {/* DATOS */}
-      <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+      <div className="bg-health-card p-6 rounded-xl border border-health-border">
         <h2 className="text-lg font-semibold text-health-accent mb-4">
           Información de la aseguradora
         </h2>
 
-        <ul className="space-y-2 text-white/80">
+        <ul className="space-y-2 text-health-text">
           <li>
-            <span className="text-white/50">Nombre Comercial:</span>{" "}
+            <span className="text-health-text-muted">Nombre Comercial:</span>{" "}
             {company.nombre_comercial || "—"}
           </li>
 
           <li>
-            <span className="text-white/50">Razón Social:</span>{" "}
+            <span className="text-health-text-muted">Razón Social:</span>{" "}
             {company.nombre_juridico}
           </li>
 
           <li>
-            <span className="text-white/50">RUT:</span>{" "}
+            <span className="text-health-text-muted">RUT:</span>{" "}
             {company.rut || "—"}
           </li>
         </ul>
