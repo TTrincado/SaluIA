@@ -28,7 +28,7 @@ export type Patient = {
   sex?: string;
   height?: number;
   weight?: number;
-  aseguradora?: string; // TODO: cambiar al objeto
+  aseguradora?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -49,12 +49,10 @@ export type Doctor = {
   country?: string;
 };
 
-// Doctor object returned by the `GET /get-doctors` endpoint includes an id
 export type DoctorWithId = Doctor & {
   id: string;
 };
 
-// Patient object returned by list endpoints includes an id
 export type PatientWithId = Patient & {
   id: string;
 };
@@ -68,7 +66,7 @@ export interface CreatePatientRequest {
   sex?: string;
   height?: number;
   weight?: number;
-  aseguradora?: string; // TODO: cambiar al objeto
+  aseguradora?: string;
 }
 
 export interface UpdatePatientRequest {
@@ -80,11 +78,12 @@ export interface UpdatePatientRequest {
   sex?: string;
   height?: number;
   weight?: number;
-  aseguradora?: string; // TODO: cambiar al objeto
+  aseguradora?: string;
 }
 
 export type ClinicalAttention = {
   id: string;
+  id_episodio?: string | null;
   created_at: string | null;
   updated_at: string | null;
   is_deleted: boolean;
@@ -92,12 +91,14 @@ export type ClinicalAttention = {
   deleted_by: string | null;
   overwritten_by: string | null;
   overwritten_reason: string | null;
+  medic_approved?: boolean | null;
   patient: Patient;
   resident_doctor: Doctor;
   supervisor_doctor: Doctor;
   applies_urgency_law: boolean | null;
   ai_result: boolean | null;
   ai_reason: string | null;
+  ai_confidence?: number | null;
   diagnostic: string | null;
 };
 
@@ -106,33 +107,28 @@ export type CreateClinicalAttentionRequest = {
   resident_doctor_id: string;
   supervisor_doctor_id: string;
   diagnostic: string;
+  id_episodio?: string;
 };
 
 export type UpdateClinicalAttentionRequest = {
   patient?: string;
   resident_doctor_id?: string;
-  diagnostic: string;
+  diagnostic?: string;
   is_deleted?: boolean;
-}
+  clinical_summary_txt?: string;
+  id_episodio?: string;
+  overwritten_by?: string | null;
+  overwritten_reason?: string | null;
+  medic_approved?: boolean | null;
+};
 
+export type UserRole = "resident" | "supervisor" | "admin";
 
-// --- Auth Types (Based on FastAPI models) ---
-
-export type UserRole = 'resident' | 'supervisor' | 'admin';
-
-/**
- * Payload for /auth/login
- * Matches FastAPI 'UserAuth'
- */
 export type LoginPayload = {
   email: string;
   password: string;
 };
 
-/**
- * Payload for /auth/register
- * Matches FastAPI 'UserCreate'
- */
 export type RegisterPayload = {
   email: string;
   password: string;
@@ -140,10 +136,6 @@ export type RegisterPayload = {
   last: string;
 };
 
-/**
- * Supabase User Object
- * The core user data returned by Supabase
- */
 export type AuthUser = {
   id: string;
   email?: string;
@@ -156,10 +148,6 @@ export type AuthUser = {
   [key: string]: any;
 };
 
-/**
- * Supabase Session Object
- * Contains the user and tokens
- */
 export type AuthSession = {
   user: AuthUser;
   access_token: string;
@@ -168,17 +156,10 @@ export type AuthSession = {
   [key: string]: any;
 };
 
-/**
- * Expected response from /auth/register
- */
 export type RegisterResponse = {
   user: AuthUser;
 };
 
-/**
- * Expected response from /auth/login
- * This matches the 'AuthResponse' I used previously.
- */
 export type LoginResponse = {
   session: AuthSession;
 };
@@ -186,8 +167,8 @@ export type LoginResponse = {
 export interface CreateUserRequest {
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
+  first: string;
+  last: string;
   role: UserRole;
 }
 
@@ -221,7 +202,6 @@ export interface UpdateInsuranceCompanyRequest {
   rut?: string | null;
 }
 
-// Clinical Attention History Types
 export type ClinicalAttentionHistoryItem = {
   id: string;
   id_episodio: string | null;
@@ -244,20 +224,17 @@ export type ClinicalAttentionHistoryResponse = {
   patients: PatientClinicalHistory[];
 };
 
-// Metrics Types
-export type UserMetrics = {
-  userId: string;
-  nombre: string;
-  rol: UserRole;
-  episodiosSubidos: number;
-  rechazosSupervisor: number;
-  rechazosAseguradora: {
-    aprobadosPorSupervisor: number;
-    rechazadosPorSupervisor: number;
-  };
-  // Computed fields
-  pctRechazosSupervisor?: number;
-  pctRechazosAseguradora?: number;
-  totalRechazosAseguradora?: number;
-  casosDisputables?: number;
+export type MetricStats = {
+  id: string | number | null;
+  name: string;
+  total_episodes: number;
+
+  total_urgency_law: number;
+  percent_urgency_law_rejected: number;
+
+  total_ai_yes: number;
+  percent_ai_yes_rejected: number;
+
+  total_ai_no_medic_yes: number;
+  percent_ai_no_medic_yes_rejected: number;
 };
