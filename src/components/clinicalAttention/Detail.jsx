@@ -292,8 +292,9 @@ export default function ClinicalAttentionDetail({ attentionId }) {
   const userId = currentUser?.id;
   const isOwner = ca.resident_doctor?.id === userId;
   const canEdit =
+    userRole === "admin" ||
     userRole === "supervisor" || (userRole === "resident" && isOwner);
-  console.log("CAN EDIT:", canEdit,userRole);
+  
   return (
     <div className="p-6 flex flex-col gap-6 animate-in fade-in duration-500 relative">
 
