@@ -1,261 +1,294 @@
-import React, { useEffect, useState } from 'react';
-import { getAllUsersMetrics, getTeamMetrics } from './mockMetricsData.js';
+import React, { useEffect, useState } from "react";
+import { apiClient } from "../../modules/api";
 
-/**
- * AllUsersMetricsTable - Tabla completa de métricas de todos los usuarios
- *
- * Solo visible para supervisores y admins.
- * Muestra una tabla con las métricas de todos los médicos del equipo.
- */
 export default function AllUsersMetricsTable() {
   const [allMetrics, setAllMetrics] = useState([]);
-  const [teamMetrics, setTeamMetrics] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'nombre', direction: 'asc' });
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: "name",
+    direction: "asc",
+  });
+
+  // Date filters
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const fetchMetrics = async () => {
+    setLoading(true);
+    try {
+      const resp = await apiClient.getAllUsersMetrics(startDate, endDate);
+      if (resp.success && resp.data) {
+        setAllMetrics(resp.data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Cargar todas las métricas
-    const metrics = getAllUsersMetrics();
-    setAllMetrics(metrics);
+    fetchMetrics();
+  }, [startDate, endDate]);
 
-    // Cargar métricas del equipo
-    const team = getTeamMetrics();
-    setTeamMetrics(team);
-  }, []);
-
-  // Función de ordenamiento
+  // Sort Logic
   const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
     }
     setSortConfig({ key, direction });
   };
 
-  // Filtrar y ordenar usuarios
   const filteredAndSortedMetrics = React.useMemo(() => {
     let filtered = [...allMetrics];
 
-    // Filtrar por búsqueda
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(user =>
-        user.nombre.toLowerCase().includes(query)
+      filtered = filtered.filter((user) =>
+        user.name.toLowerCase().includes(query)
       );
     }
 
-    // Ordenar
     filtered.sort((a, b) => {
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
-      // Para ordenamiento numérico
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "asc"
+          ? aValue - bValue
+          : bValue - aValue;
       }
-
-      // Para ordenamiento de strings
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortConfig.direction === 'asc'
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortConfig.direction === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-
       return 0;
     });
 
     return filtered;
   }, [allMetrics, searchQuery, sortConfig]);
 
-  // Helper para renderizar el ícono de ordenamiento
   const renderSortIcon = (columnKey) => {
-    if (sortConfig.key !== columnKey) {
-      return <span className="text-white/30">⇅</span>;
-    }
-    return sortConfig.direction === 'asc' ? '↑' : '↓';
-  };
-
-  // Helper para determinar el color del badge de rol
-  const getRoleBadge = (rol) => {
-    const badges = {
-      'admin': { bg: 'bg-purple-500/20', text: 'text-purple-300', label: 'Jefe Servicio' },
-      'supervisor': { bg: 'bg-blue-500/20', text: 'text-blue-300', label: 'Médico Jefe' },
-      'resident': { bg: 'bg-green-500/20', text: 'text-green-300', label: 'Residente' }
-    };
-    return badges[rol] || badges.resident;
+    if (sortConfig.key !== columnKey)
+      return <span className="text-gray-300">⇅</span>;
+    return sortConfig.direction === "asc" ? "↑" : "↓";
   };
 
   return (
     <div className="space-y-6">
-      {/* Header con métricas del equipo */}
-      {teamMetrics && (
-        <div className="bg-gradient-to-r from-health-accent/20 to-blue-500/20 border border-health-accent/30 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Resumen del Equipo Médico
-          </h3>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-sm text-white/60 mb-1">Total Usuarios</p>
-              <p className="text-2xl font-bold text-white">{teamMetrics.totalUsuarios}</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60 mb-1">Episodios Totales</p>
-              <p className="text-2xl font-bold text-white">{teamMetrics.episodiosSubidos}</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60 mb-1">% Rechazos Supervisor</p>
-              <p className="text-2xl font-bold text-amber-400">{teamMetrics.pctRechazosSupervisor}%</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60 mb-1">Casos Disputables</p>
-              <p className="text-2xl font-bold text-health-accent">{teamMetrics.casosDisputables}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Barra de búsqueda */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+      {/* Controles: Buscador y Fecha */}
+      <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-2xl border border-health-border shadow-sm">
         <input
           type="text"
-          placeholder="Buscar médico por nombre..."
+          placeholder="Buscar médico..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white placeholder-white/40 outline-none focus:border-health-accent transition"
+          className="flex-1 bg-white border border-health-border rounded-lg p-2 text-health-text outline-none focus:ring-2 focus:ring-health-accent"
         />
+
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="bg-white border border-health-border rounded-lg p-2 text-health-text"
+          />
+          <span className="self-center text-gray-400">a</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="bg-white border border-health-border rounded-lg p-2 text-health-text"
+          />
+          <button
+            onClick={fetchMetrics}
+            className="px-4 py-2 bg-health-accent text-white rounded-lg hover:bg-health-accent-dark transition"
+          >
+            Filtrar
+          </button>
+        </div>
       </div>
 
-      {/* Tabla de métricas */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+      {/* Tabla (Light Mode Fix) */}
+      <div className="bg-white border border-health-border rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-black/30">
-              <tr className="text-left text-white/80">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 text-health-text-muted font-semibold border-b border-health-border">
+              <tr>
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap"
-                  onClick={() => handleSort('nombre')}
+                  className="px-4 py-3 cursor-pointer"
+                  onClick={() => handleSort("name")}
                 >
-                  <div className="flex items-center gap-2">
-                    <span>Nombre</span>
-                    <span className="text-xs">{renderSortIcon('nombre')}</span>
+                  <div className="flex items-center gap-1">
+                    Médico {renderSortIcon("name")}
                   </div>
                 </th>
+
+                {/* 1. # Episodios subidos */}
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap"
-                  onClick={() => handleSort('rol')}
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("total_episodes")}
+                  title="Total de episodios clínicos registrados por el usuario"
                 >
-                  <div className="flex items-center gap-2">
-                    <span>Rol</span>
-                    <span className="text-xs">{renderSortIcon('rol')}</span>
+                  <div className="flex flex-col items-center">
+                    <span># Ep.</span>
+                    <span>Subidos</span>
+                    {renderSortIcon("total_episodes")}
                   </div>
                 </th>
+
+                {/* 2. # Ley Urgencia (IA o Médico SI) */}
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap text-center"
-                  onClick={() => handleSort('episodiosSubidos')}
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("total_urgency_law")}
+                  title="Cantidad de episodios donde finalmente se aplicó Ley de Urgencia (IA acertó o Médico corrigió)"
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <span># Episodios</span>
-                    <span className="text-xs">{renderSortIcon('episodiosSubidos')}</span>
+                  <div className="flex flex-col items-center">
+                    <span># Ley</span>
+                    <span>Urgencia</span>
+                    {renderSortIcon("total_urgency_law")}
                   </div>
                 </th>
+
+                {/* 3. % Rechazo Ley Urgencia */}
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap text-center"
-                  onClick={() => handleSort('pctRechazosSupervisor')}
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("percent_urgency_law_rejected")}
+                  title="Porcentaje de rechazo por aseguradora sobre el total de Ley de Urgencia"
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>% Rechazo Supervisor</span>
-                    <span className="text-xs">{renderSortIcon('pctRechazosSupervisor')}</span>
+                  <div className="flex flex-col items-center">
+                    <span>% Rechazo</span>
+                    <span>(General)</span>
+                    {renderSortIcon("percent_urgency_law_rejected")}
                   </div>
                 </th>
+
+                {/* 4. # IA SI */}
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap text-center"
-                  onClick={() => handleSort('pctRechazosAseguradora')}
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("total_ai_yes")}
+                  title="Cantidad de episodios donde la IA sugirió Ley de Urgencia"
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>% Rechazo Aseguradora</span>
-                    <span className="text-xs">{renderSortIcon('pctRechazosAseguradora')}</span>
+                  <div className="flex flex-col items-center">
+                    <span># IA</span>
+                    <span>Sí</span>
+                    {renderSortIcon("total_ai_yes")}
                   </div>
                 </th>
+
+                {/* 5. % Rechazo IA SI */}
                 <th
-                  className="px-4 py-3 cursor-pointer hover:bg-white/5 transition whitespace-nowrap text-center"
-                  onClick={() => handleSort('casosDisputables')}
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("percent_ai_yes_rejected")}
+                  title="Porcentaje de rechazo por aseguradora cuando la IA dijo Sí"
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Casos Disputables</span>
-                    <span className="text-xs">{renderSortIcon('casosDisputables')}</span>
+                  <div className="flex flex-col items-center">
+                    <span>% Rechazo</span>
+                    <span>(IA Sí)</span>
+                    {renderSortIcon("percent_ai_yes_rejected")}
+                  </div>
+                </th>
+
+                {/* 6. # IA NO / Med SI */}
+                <th
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("total_ai_no_medic_yes")}
+                  title="Cantidad de episodios donde IA dijo No pero Médico corrigió a Sí"
+                >
+                  <div className="flex flex-col items-center">
+                    <span># IA No</span>
+                    <span>Med Sí</span>
+                    {renderSortIcon("total_ai_no_medic_yes")}
+                  </div>
+                </th>
+
+                {/* 7. % Rechazo (IA No / Med SI) */}
+                <th
+                  className="px-4 py-3 text-center cursor-pointer"
+                  onClick={() => handleSort("percent_ai_no_medic_yes_rejected")}
+                  title="Porcentaje de rechazo por aseguradora en casos corregidos por médico"
+                >
+                  <div className="flex flex-col items-center">
+                    <span>% Rechazo</span>
+                    <span>(Corregidos)</span>
+                    {renderSortIcon("percent_ai_no_medic_yes_rejected")}
                   </div>
                 </th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-white/5">
-              {filteredAndSortedMetrics.length > 0 ? (
-                filteredAndSortedMetrics.map((user) => {
-                  const roleBadge = getRoleBadge(user.rol);
+            <tbody className="divide-y divide-health-border text-health-text">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-health-text-muted"
+                  >
+                    Cargando datos...
+                  </td>
+                </tr>
+              ) : filteredAndSortedMetrics.length > 0 ? (
+                filteredAndSortedMetrics.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50 transition">
+                    <td className="px-4 py-3 font-medium">
+                      {user.name || "Usuario Desconocido"}
+                    </td>
 
-                  return (
-                    <tr key={user.userId} className="hover:bg-white/5 transition">
-                      <td className="px-4 py-3 whitespace-nowrap font-medium text-white">
-                        {user.nombre}
-                      </td>
+                    <td className="px-4 py-3 text-center">
+                      {user.total_episodes}
+                    </td>
 
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${roleBadge.bg} ${roleBadge.text}`}>
-                          {roleBadge.label}
-                        </span>
-                      </td>
+                    <td className="px-4 py-3 text-center font-semibold text-blue-600">
+                      {user.total_urgency_law}
+                    </td>
 
-                      <td className="px-4 py-3 text-center whitespace-nowrap text-white">
-                        {user.episodiosSubidos}
-                      </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`${
+                          user.percent_urgency_law_rejected > 20
+                            ? "text-red-600 font-bold"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {user.percent_urgency_law_rejected}%
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <div className="flex flex-col items-center">
-                          <span className={`font-semibold ${
-                            user.pctRechazosSupervisor < 10 ? 'text-green-400' :
-                            user.pctRechazosSupervisor < 20 ? 'text-amber-400' :
-                            'text-red-400'
-                          }`}>
-                            {user.pctRechazosSupervisor}%
-                          </span>
-                          <span className="text-xs text-white/40">
-                            ({user.rechazosSupervisor})
-                          </span>
-                        </div>
-                      </td>
+                    <td className="px-4 py-3 text-center">
+                      {user.total_ai_yes}
+                    </td>
 
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <div className="flex flex-col items-center">
-                          <span className={`font-semibold ${
-                            user.pctRechazosAseguradora < 15 ? 'text-green-400' :
-                            user.pctRechazosAseguradora < 25 ? 'text-amber-400' :
-                            'text-red-400'
-                          }`}>
-                            {user.pctRechazosAseguradora}%
-                          </span>
-                          <span className="text-xs text-white/40">
-                            ({user.totalRechazosAseguradora})
-                          </span>
-                        </div>
-                      </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`${
+                          user.percent_ai_yes_rejected > 20
+                            ? "text-red-600"
+                            : "text-health-text"
+                        }`}
+                      >
+                        {user.percent_ai_yes_rejected}%
+                      </span>
+                    </td>
 
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-lg font-bold ${
-                          user.casosDisputables > 6 ? 'bg-health-accent/20 text-health-accent' :
-                          user.casosDisputables > 3 ? 'bg-amber-500/20 text-amber-400' :
-                          'bg-white/10 text-white/70'
-                        }`}>
-                          {user.casosDisputables}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
+                    <td className="px-4 py-3 text-center bg-yellow-50">
+                      {user.total_ai_no_medic_yes}
+                    </td>
+
+                    <td className="px-4 py-3 text-center bg-yellow-50">
+                      {user.percent_ai_no_medic_yes_rejected}%
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-white/60">
-                    {searchQuery ? 'No se encontraron resultados para tu búsqueda' : 'No hay datos disponibles'}
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-health-text-muted"
+                  >
+                    No se encontraron resultados
                   </td>
                 </tr>
               )}
@@ -264,21 +297,12 @@ export default function AllUsersMetricsTable() {
         </div>
       </div>
 
-      {/* Leyenda informativa */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-        <div className="flex gap-3">
-          <div className="text-xl">💡</div>
-          <div className="flex-1">
-            <p className="text-sm text-blue-300 font-medium mb-2">
-              Sobre de los indicadores
-            </p>
-            <ul className="text-xs text-white/60 space-y-1">
-              <li><strong>% Rechazo Supervisor:</strong> Porcentaje de episodios rechazados en la primera revisión médica</li>
-              <li><strong>% Rechazo Aseguradora:</strong> Porcentaje de episodios rechazados por la aseguradora</li>
-              <li><strong>Casos Disputables:</strong> Episodios rechazados por aseguradora pero aprobados por el supervisor</li>
-            </ul>
-          </div>
-        </div>
+      <div className="flex gap-2 items-start text-xs text-health-text-muted bg-blue-50 p-3 rounded-lg border border-blue-100">
+        <span className="text-xl">💡</span>
+        <p>
+          Pasa el cursor sobre los encabezados de la tabla para ver la
+          descripción detallada de cada métrica.
+        </p>
       </div>
     </div>
   );

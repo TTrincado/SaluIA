@@ -2,25 +2,25 @@ import { API_URL } from "astro:env/client";
 import type {
   ApiResponse,
   ClinicalAttention,
+  ClinicalAttentionHistoryRequest,
+  ClinicalAttentionHistoryResponse,
   CreateClinicalAttentionRequest,
+  CreateInsuranceCompanyRequest,
+  CreatePatientRequest,
+  CreateUserRequest,
   DoctorWithId,
   InsuranceCompany,
   LoginPayload,
   LoginResponse,
+  MetricStats,
   PaginatedResponse,
   PatientWithId,
-  CreatePatientRequest,
-  UpdatePatientRequest,
-  CreateUserRequest,
-  UpdateUserRequest,
-  UserWithRole,
-  RegisterPayload,
   RegisterResponse,
   UpdateClinicalAttentionRequest,
-  CreateInsuranceCompanyRequest,
   UpdateInsuranceCompanyRequest,
-  ClinicalAttentionHistoryRequest,
-  ClinicalAttentionHistoryResponse,
+  UpdatePatientRequest,
+  UpdateUserRequest,
+  UserWithRole,
 } from "./types";
 
 type QueryParams = Record<string, string | number | boolean | undefined>;
@@ -55,7 +55,6 @@ class ApiClient {
       const fullEndpoint = this.buildUrl(endpoint, params);
       const url = `${this.baseUrl}${fullEndpoint}`;
 
-      // Aseguramos headers
       const headers = {
         "Content-Type": "application/json",
         ...options.headers,
@@ -73,7 +72,6 @@ class ApiClient {
         };
       }
 
-      // Handle empty responses (like DELETE 204 No Content)
       const contentType = response.headers.get("content-type");
       if (
         response.status === 204 ||
@@ -91,8 +89,8 @@ class ApiClient {
       };
     }
   }
-  // Auth endpoints
 
+  // Auth endpoints
   async login(payload: LoginPayload): Promise<ApiResponse<LoginResponse>> {
     return this.request<LoginResponse>("/auth/login", {
       method: "POST",
@@ -101,24 +99,23 @@ class ApiClient {
   }
 
   async registerUser(
-  payload: CreateUserRequest
-): Promise<ApiResponse<RegisterResponse>> {
-  const body = {
-    email: payload.email,
-    password: payload.password,
-    first: payload.first,         // <-- antes first_name
-    last: payload.last,           // <-- antes last_name
-    role: payload.role,
-  };
+    payload: CreateUserRequest
+  ): Promise<ApiResponse<RegisterResponse>> {
+    const body = {
+      email: payload.email,
+      password: payload.password,
+      first: payload.first,
+      last: payload.last,
+      role: payload.role,
+    };
 
-  return this.request<RegisterResponse>("/auth/register", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
+    return this.request<RegisterResponse>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
 
-
-  // Medics / Doctors
+  // Medics
   async getMedics(): Promise<
     ApiResponse<{ resident: DoctorWithId[]; supervisor: DoctorWithId[] }>
   > {
@@ -143,12 +140,10 @@ class ApiClient {
     return this.request<{ patients: PatientWithId[] }>("/patients/patients");
   }
 
-  // Obtener uno por ID
   async getPatient(id: string): Promise<ApiResponse<PatientWithId>> {
     return this.request<PatientWithId>(`/patients/${id}`);
   }
 
-  // Crear
   async createPatient(
     payload: CreatePatientRequest
   ): Promise<ApiResponse<PatientWithId>> {
@@ -158,7 +153,6 @@ class ApiClient {
     });
   }
 
-  // Actualizar
   async updatePatient(
     id: string,
     payload: UpdatePatientRequest
@@ -169,8 +163,7 @@ class ApiClient {
     });
   }
 
-  // clinical attentions endpoints
-
+  // Clinical Attentions
   async getClinicalAttentions(pagination?: {
     page?: number;
     page_size?: number;
@@ -244,17 +237,13 @@ class ApiClient {
     );
   }
 
-  // ================================
-  // Insurance Companies CRUD
-  // ================================
-
+  // Insurance Companies
   async getInsuranceCompanies(params?: {
     page?: number;
     page_size?: number;
     search?: string;
     order?: string;
   }): Promise<ApiResponse<PaginatedResponse<InsuranceCompany>>> {
-    console.log("Fetching insurance companies with params:", params);
     return this.request<PaginatedResponse<InsuranceCompany>>(
       "/insurance_companies",
       {},
@@ -292,7 +281,8 @@ class ApiClient {
       method: "DELETE",
     });
   }
-    async uploadInsuranceExcel(
+
+  async uploadInsuranceExcel(
     insurance_company_id: number,
     file: File
   ): Promise<ApiResponse<{ updated: number }>> {
@@ -304,7 +294,7 @@ class ApiClient {
     try {
       const response = await fetch(url, {
         method: "POST",
-        body: formData, // NO agregar Content-Type manualmente
+        body: formData,
       });
 
       if (!response.ok) {
@@ -324,6 +314,45 @@ class ApiClient {
     }
   }
 
+  // Metrics
+  async getAllUsersMetrics(
+    startDate?: string,
+    endDate?: string
+  ): Promise<ApiResponse<MetricStats[]>> {
+    const params: QueryParams = {};
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+
+    return this.request<MetricStats[]>("/metrics/users", {}, params);
+  }
+
+  async getUserMetrics(
+    userId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<ApiResponse<MetricStats>> {
+    const params: QueryParams = {};
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+
+    return this.request<MetricStats>(`/metrics/users/${userId}`, {}, params);
+  }
+
+  async getInsuranceMetrics(
+    companyId: number,
+    startDate?: string,
+    endDate?: string
+  ): Promise<ApiResponse<MetricStats>> {
+    const params: QueryParams = {};
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+
+    return this.request<MetricStats>(
+      `/metrics/insurance_companies/${companyId}`,
+      {},
+      params
+    );
+  }
 }
 
 export const apiClient = new ApiClient();

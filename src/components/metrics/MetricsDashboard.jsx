@@ -1,45 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import MetricCard, { MetricCardWithProgress } from './MetricCard.jsx';
-import { getUserMetrics } from './mockMetricsData.js';
+import { useEffect, useState } from "react";
+import { apiClient } from "../../modules/api";
+import MetricCard, { MetricCardWithProgress } from "./MetricCard.jsx";
 
 /**
  * MetricsDashboard - Dashboard de métricas individuales
- * 
- * Muestra las métricas personales de un médico:
- * - Total de episodios subidos
- * - % de rechazos por supervisor
- * - % de rechazos por aseguradora
- * - Casos disputables (rechazados por aseguradora pero aprobados por médico)
  */
 export default function MetricsDashboard() {
   const [metrics, setMetrics] = useState(null);
-  const [userName, setUserName] = useState('Usuario');
-  const [userRole, setUserRole] = useState('resident');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userName, setUserName] = useState("Usuario");
+  const [userRole, setUserRole] = useState("");
+
+  // Filtros de fecha
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const fetchMetrics = async (userId, start, end) => {
+    setLoading(true);
+    try {
+      const resp = await apiClient.getUserMetrics(userId, start, end);
+      if (resp.success && resp.data) {
+        setMetrics(resp.data);
+      } else {
+        setError("Error al cargar métricas");
+      }
+    } catch (e) {
+      console.error(e);
+      setError("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Obtener datos del usuario del localStorage
     try {
-      const sessionStr = localStorage.getItem('saluia.session');
+      const sessionStr = localStorage.getItem("saluia.session");
       if (sessionStr) {
         const session = JSON.parse(sessionStr);
         const userId = session.user?.id;
-        const role = session.user?.user_metadata?.role || 'resident';
-        const firstName = session.user?.user_metadata?.first_name || '';
-        const lastName = session.user?.user_metadata?.last_name || '';
-        
-        setUserName(`${firstName} ${lastName}`.trim() || 'Usuario');
+        const role = session.user?.user_metadata?.role || "resident";
+        const firstName = session.user?.user_metadata?.first_name || "";
+        const lastName = session.user?.user_metadata?.last_name || "";
+
+        setUserName(`${firstName} ${lastName}`.trim() || "Usuario");
         setUserRole(role);
-        
-        // Cargar métricas del usuario
-        const userMetrics = getUserMetrics(userId);
-        setMetrics(userMetrics);
+
+        if (userId) {
+          fetchMetrics(userId, startDate, endDate);
+        }
       }
     } catch (error) {
-      console.error('Error loading user metrics:', error);
+      console.error("Error loading user session:", error);
+      setError("Error de sesión");
+      setLoading(false);
     }
-  }, []);
+  }, [startDate, endDate]);
 
-  if (!metrics) {
+  const handleDateFilterChange = (period) => {
+    const now = new Date();
+    let start = "";
+    let end = now.toISOString().split("T")[0];
+
+    if (period === "month") {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 1);
+      start = d.toISOString().split("T")[0];
+    } else if (period === "quarter") {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 3);
+      start = d.toISOString().split("T")[0];
+    } else if (period === "year") {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 1);
+      start = d.toISOString().split("T")[0];
+    } else {
+      // All time
+      start = "";
+      end = "";
+    }
+
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const roleLabels = {
+    resident: "Médico Residente",
+    supervisor: "Médico Jefe",
+    admin: "Jefe de Servicio",
+  };
+
+  if (loading && !metrics) {
     return (
       <div className="text-health-text-muted text-center py-8">
         Cargando métricas...
@@ -47,123 +98,112 @@ export default function MetricsDashboard() {
     );
   }
 
-  // Calcular el total de rechazos de aseguradora
-  const totalRechazosAseguradora = metrics.totalRechazosAseguradora || 0;
-  
-  // Determinar el rol en español
-  const roleLabels = {
-    'resident': 'Médico Residente',
-    'supervisor': 'Médico Jefe de Turno',
-    'admin': 'Jefe de Servicio'
-  };
+  if (error) {
+    return <div className="text-red-500 text-center py-8">{error}</div>;
+  }
+
+  if (!metrics) return null;
 
   return (
     <div className="space-y-6">
-      {/* Header con info del usuario */}
-      <div className="bg-white border border-health-border rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-health-text mb-1">
-              Tus Métricas Personales
-            </h2>
-            <p className="text-health-text-muted text-sm">
-              {userName} • {roleLabels[userRole] || 'Médico'}
-            </p>
-          </div>
+      {/* Header */}
+      <div className="bg-white border border-health-border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-health-text mb-1">
+            Tus Métricas Personales
+          </h2>
+          <p className="text-health-text-muted text-sm">
+            {userName} • {roleLabels[userRole] || "Médico"}
+          </p>
+        </div>
 
-          {/* Selector de rango de fechas (UI only) */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-health-text-muted">Período:</span>
-            <select
-              className="bg-white border border-health-border rounded-lg px-3 py-2 text-sm text-health-text outline-none focus:ring-2 focus:ring-health-accent"
-              defaultValue="all"
-            >
-              <option value="all">Todos los tiempos</option>
-              <option value="month">Último mes</option>
-              <option value="quarter">Último trimestre</option>
-              <option value="year">Último año</option>
-            </select>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-health-text-muted">Período:</span>
+          <select
+            className="bg-white border border-health-border rounded-lg px-3 py-2 text-sm text-health-text outline-none focus:ring-2 focus:ring-health-accent"
+            onChange={(e) => handleDateFilterChange(e.target.value)}
+            defaultValue="all"
+          >
+            <option value="all">Histórico (Todo)</option>
+            <option value="month">Último mes</option>
+            <option value="quarter">Último trimestre</option>
+            <option value="year">Último año</option>
+          </select>
         </div>
       </div>
 
-      {/* Grid de métricas principales */}
+      {/* 3 CARDS SUPERIORES: GENERALES */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total de episodios */}
         <MetricCard
           title="Episodios Subidos"
-          value={metrics.episodiosSubidos}
-          subtitle="Total de episodios registrados"
+          value={metrics.total_episodes}
+          subtitle="Total general"
           theme="info"
           icon="📋"
         />
-
-        {/* % Rechazos por supervisor */}
-        <MetricCardWithProgress
-          title="Rechazos por Supervisor"
-          value={metrics.pctRechazosSupervisor}
-          count={metrics.rechazosSupervisor}
-          total={metrics.episodiosSubidos}
-          subtitle={`${metrics.rechazosSupervisor} de ${metrics.episodiosSubidos} episodios`}
-          theme={metrics.pctRechazosSupervisor < 10 ? 'success' : metrics.pctRechazosSupervisor < 20 ? 'warning' : 'danger'}
+        <MetricCard
+          title="Ley de Urgencia (Total)"
+          value={metrics.total_urgency_law}
+          subtitle="Médico o IA confirmaron urgencia"
+          theme="warning"
+          icon="🚨"
         />
-
-        {/* % Rechazos por aseguradora */}
+        {/* 1. % Rechazo Ley Urgencia General */}
         <MetricCardWithProgress
-          title="Rechazos por Aseguradora"
-          value={metrics.pctRechazosAseguradora}
-          count={totalRechazosAseguradora}
-          total={metrics.episodiosSubidos}
-          subtitle={`${totalRechazosAseguradora} episodios rechazados`}
-          theme={metrics.pctRechazosAseguradora < 15 ? 'success' : metrics.pctRechazosAseguradora < 25 ? 'warning' : 'danger'}
+          title="% Rechazo (Ley Urgencia General)"
+          value={metrics.percent_urgency_law_rejected}
+          subtitle="De todos los casos marcados como urgencia"
+          theme={
+            metrics.percent_urgency_law_rejected < 15 ? "success" : "danger"
+          }
         />
       </div>
 
-      {/* Desglose detallado de rechazos de aseguradora */}
+      {/* 4 CARDS INFERIORES: RIESGO / RECHAZO */}
       <div className="bg-white border border-health-border rounded-2xl p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-health-text mb-4">
-          Desglose de Rechazos de Aseguradora
+          Indicadores de Rechazo y Discrepancia
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Aprobados por supervisor pero rechazados por aseguradora */}
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-health-text-muted mb-1">
-                  Aprobados por Supervisor
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {metrics.rechazosAseguradora.aprobadosPorSupervisor}
-                </p>
-                <p className="text-xs text-health-text-muted mt-2">
-                  Estos casos pueden ser disputables con la aseguradora
-                </p>
-              </div>
-              <div className="text-2xl">🔍</div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          <MetricCard
+            title="IA dijo SÍ / Médico dijo SÍ"
+            value={metrics.total_ai_yes}
+            subtitle="Casos detectados por IA"
+            theme="highlight"
+            icon="🤖"
+          />
 
-          {/* Rechazados por supervisor Y por aseguradora */}
-          <div className="bg-gray-50 border border-health-border rounded-xl p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-health-text-muted mb-1">
-                  Rechazados por Supervisor
-                </p>
-                <p className="text-2xl font-bold text-health-text">
-                  {metrics.rechazosAseguradora.rechazadosPorSupervisor}
-                </p>
-                <p className="text-xs text-health-text-muted mt-2">
-                  Rechazados en ambas instancias de revisión
-                </p>
-              </div>
-              <div className="text-2xl">✕</div>
-            </div>
-          </div>
+          {/* 2. % Rechazo (IA dijo SI) */}
+          <MetricCardWithProgress
+            title="% Rechazo (IA dijo SÍ / Médico dijo SÍ)"
+            value={metrics.percent_ai_yes_rejected}
+            subtitle="Tasa de rechazo por aseguradoras"
+            theme={metrics.percent_ai_yes_rejected < 15 ? "success" : "danger"}
+          />
+
+          {/* 3. IA No / Médico Sí (Cantidad) */}
+          <MetricCard
+            title="IA dijo NO / Médico dijo SÍ"
+            value={metrics.total_ai_no_medic_yes}
+            subtitle="Casos rescatados por el criterio médico"
+            theme="default"
+            icon="👨‍⚕️"
+          />
+
+          {/* 4. % Rechazo (IA No / Med Sí) */}
+          <MetricCardWithProgress
+            title="% Rechazo (IA dijo NO / Médico dijo SÍ)"
+            value={metrics.percent_ai_no_medic_yes_rejected}
+            subtitle="Tasa de rechazo por aseguradoras"
+            theme={
+              metrics.percent_ai_no_medic_yes_rejected < 20
+                ? "warning"
+                : "danger"
+            }
+          />
         </div>
       </div>
     </div>
   );
 }
-
