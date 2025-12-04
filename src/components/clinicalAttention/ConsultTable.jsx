@@ -15,10 +15,10 @@ export default function ConsultTable() {
 
   // --- FILTERS STATE ---
   const [filters, setFilters] = useState({
-    patient: "", // Name or RUT
-    doctor: "", // Dynamic doctor search
-    status: "all", // Resident Status: "all", "pending", "approved", "rejected"
-    supervisorStatus: "all", // Supervisor Status: "all", "pending" (null), "approved" (true), "rejected" (false)
+    patient: "", 
+    doctor: "", 
+    status: "all",
+    supervisorStatus: "all",
   });
 
   useEffect(() => {
@@ -43,32 +43,58 @@ export default function ConsultTable() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const response = await apiClient.getClinicalAttentions({
-          page: currentPage,
-          page_size: pageSize,
-        });
+    try {
+      const response = await apiClient.getClinicalAttentions({
+        page: currentPage,
+        page_size: pageSize,
+      });
 
-        if (response.success && response.data) {
-          setClinicalAttentions(response.data.results);
-          setTotal(response.data.total);
-        } else {
-          setError(response.error || "Error al cargar los datos");
-        }
-      } catch (err) {
-        setError("Error al cargar los datos");
-      } finally {
-        setLoading(false);
+      if (response.success && response.data) {
+        setClinicalAttentions(response.data.results);
+        setTotal(response.data.total);
+      } else {
+        setError(response.error || "Error al cargar los datos");
       }
-    };
+    } catch (err) {
+      setError("Error al cargar los datos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, [currentPage, pageSize]);
+
+  // --- INLINE EDIT HANDLER FOR PERTINENCIA ---
+  const handlePertinenciaChange = async (id, newValue) => {
+    // Optimistic Update
+    const previousData = [...clinicalAttentions];
+    setClinicalAttentions((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, pertinencia: newValue } : item
+      )
+    );
+
+    try {
+      const response = await apiClient.updateClinicalAttention(id, {
+        pertinencia: newValue,
+      });
+
+      if (!response.success) {
+        // Revert on error
+        setClinicalAttentions(previousData);
+        alert("Error al actualizar pertinencia");
+      }
+    } catch (e) {
+      setClinicalAttentions(previousData);
+      alert("Error de conexión");
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -80,7 +106,6 @@ export default function ConsultTable() {
   const normalize = (text) => (text ? text.toLowerCase().trim() : "");
 
   const filteredData = clinicalAttentions.filter((item) => {
-    // 1. Role-based filtering (Data Access)
     if (userRole && userRole !== "admin") {
       const myNameNormalized = normalize(userFullName);
       
@@ -95,7 +120,6 @@ export default function ConsultTable() {
       }
     }
 
-    // 2. Search Filters
     if (filters.patient) {
       const search = normalize(filters.patient);
       const pName = normalize(`${item.patient.first_name} ${item.patient.last_name}`);
@@ -124,16 +148,13 @@ export default function ConsultTable() {
       }
     }
 
-    // 3. Status Filter (Resident)
     if (filters.status !== "all") {
       if (filters.status === "pending" && item.medic_approved !== null) return false;
       if (filters.status === "approved" && item.medic_approved !== true) return false;
       if (filters.status === "rejected" && item.medic_approved !== false) return false;
     }
 
-    // 4. Status Filter (Supervisor) - NEW
     if (filters.supervisorStatus !== "all") {
-      // "pending" represents "Sin observaciones" (null)
       if (filters.supervisorStatus === "pending" && item.supervisor_approved !== null) return false;
       if (filters.supervisorStatus === "approved" && item.supervisor_approved !== true) return false;
       if (filters.supervisorStatus === "rejected" && item.supervisor_approved !== false) return false;
@@ -224,7 +245,7 @@ export default function ConsultTable() {
           </select>
         </div>
 
-        {/* Supervisor Status Filter (NEW) */}
+        {/* Supervisor Status Filter */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-health-text-muted font-medium">
              Estado Validación Supervisor
@@ -252,6 +273,7 @@ export default function ConsultTable() {
               <th>Nombre Paciente</th>
               <th>RUT</th>
               <th>Ley Urgencia</th>
+              <th>Pertinencia</th> {/* NEW COLUMN */}
               <th>Análisis IA</th>
               <th>Validación Residente</th>
               <th>Validación Supervisor</th>
@@ -266,27 +288,21 @@ export default function ConsultTable() {
 
           <tbody className="divide-y divide-health-border bg-white">
             {filteredData.map((r) => {
-              // --- LOGIC CALCULATIONS ---
               
               const isResidentApproved = r.medic_approved === true;
               const isResidentRejected = r.medic_approved === false;
               const isPendingValidation = r.medic_approved === null;
 
-              // Supervisor Status Logic
               const isSupervisorObjected = r.supervisor_approved === false;
               const isSupervisorRatified = r.supervisor_approved === true;
-              // If null, it means "Sin observaciones" (Default OK)
 
-              // Calculate Effective Urgency Law Status based on rules
               let urgencyLawApplies = null; 
 
               if (isPendingValidation) {
-                urgencyLawApplies = null; // Yellow/Pending
+                urgencyLawApplies = null; 
               } else if (isResidentApproved) {
-                // Resident Approved -> Matches AI (Standard logic)
                 urgencyLawApplies = r.ai_result;
               } else if (isResidentRejected) {
-                // Resident Rejected -> Opposite of AI
                 urgencyLawApplies = !r.ai_result;
               }
 
@@ -308,7 +324,6 @@ export default function ConsultTable() {
                     {r.patient.rut}
                   </td>
 
-                   {/* --- LEY URGENCIA COLUMN --- */}
                    <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-medium ${
@@ -327,7 +342,49 @@ export default function ConsultTable() {
                     </span>
                   </td>
 
-                  {/* AI Result */}
+                  {/* PERTINENCIA COLUMN */}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {userRole === "admin" ? (
+                      <select
+                        value={r.pertinencia === null ? "pending" : r.pertinencia ? "true" : "false"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const newValue = val === "pending" ? null : val === "true";
+                          handlePertinenciaChange(r.id, newValue);
+                        }}
+                        className={`rounded-md px-2 py-1 text-xs font-bold border cursor-pointer outline-none transition-colors appearance-none pr-6 bg-no-repeat bg-right
+                          ${
+                            r.pertinencia === true
+                              ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                              : r.pertinencia === false
+                              ? "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+                              : "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
+                          }`}
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundSize: "1.25em" }}
+                      >
+                        <option value="true">Pertinente</option>
+                        <option value="false">No Pertinente</option>
+                        <option value="pending">Pendiente</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={`rounded-md px-2 py-1 text-xs font-medium ${
+                          r.pertinencia === true
+                            ? "bg-blue-50 text-blue-700"
+                            : r.pertinencia === false
+                            ? "bg-gray-100 text-gray-600"
+                            : "bg-yellow-50 text-yellow-700"
+                        }`}
+                      >
+                        {r.pertinencia === true
+                          ? "Pertinente"
+                          : r.pertinencia === false
+                          ? "No Pertinente"
+                          : "Pendiente"}
+                      </span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-medium ${
@@ -346,7 +403,6 @@ export default function ConsultTable() {
                     </span>
                   </td>
 
-                  {/* Validación Residente */}
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-medium ${
@@ -365,7 +421,6 @@ export default function ConsultTable() {
                     </span>
                   </td>
 
-                  {/* Validación Supervisor (Gestión por Excepción) */}
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-medium ${
@@ -413,7 +468,7 @@ export default function ConsultTable() {
             {filteredData.length === 0 && (
               <tr>
                 <td
-                  colSpan={userRole === "admin" ? 11 : 10}
+                  colSpan={userRole === "admin" ? 12 : 11}
                   className="px-4 py-6 text-health-text-muted text-center"
                 >
                    {clinicalAttentions.length > 0
@@ -426,7 +481,6 @@ export default function ConsultTable() {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between text-sm text-health-text-muted">
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2">
