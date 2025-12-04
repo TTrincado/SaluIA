@@ -120,7 +120,7 @@ class ApiClient {
       method: "GET",
     });
   }
-  
+
   async updateUser(
     id: string,
     payload: UpdateUserRequest
@@ -138,6 +138,11 @@ class ApiClient {
     });
   }
 
+  async reactivateUser(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/users/${id}/reactivate`, {
+      method: "POST",
+    });
+  }
 
   // Medics
   async getMedics(): Promise<

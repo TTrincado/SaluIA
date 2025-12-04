@@ -52,6 +52,8 @@ const UserManager = () => {
           ...u,
           role: "admin",
         }));
+        
+        // Combine all users. Backend sorts them by is_deleted ASC (active first)
         setUsers([...admins, ...supervisors, ...residents]);
       } else {
         setError(resp.error || "Failed to load users");
@@ -93,12 +95,14 @@ const UserManager = () => {
     setView("create");
   };
 
-  const handleDeleteClick = async (user) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres eliminar a ${user.first_name} ${user.last_name}? Esta acción no se puede deshacer.`
-      )
-    ) {
+  const handleToggleStatusClick = async (user) => {
+    const isDeactivating = !user.is_deleted;
+    const actionText = isDeactivating ? "desactivar" : "reactivar";
+    const confirmMsg = isDeactivating
+      ? `¿Estás seguro de que quieres desactivar a ${user.first_name} ${user.last_name}? El usuario no podrá iniciar sesión.`
+      : `¿Quieres reactivar a ${user.first_name} ${user.last_name}?`;
+
+    if (!window.confirm(confirmMsg)) {
       return;
     }
 
@@ -107,12 +111,18 @@ const UserManager = () => {
     setSuccessMsg(null);
 
     try {
-      const resp = await apiClient.deleteUser(user.id);
-      if (!resp.success) {
-        throw new Error(resp.error || "Error eliminando usuario");
+      let resp;
+      if (isDeactivating) {
+        resp = await apiClient.deleteUser(user.id); // Calls deactivate endpoint
+      } else {
+        resp = await apiClient.reactivateUser(user.id);
       }
 
-      setSuccessMsg("Usuario eliminado correctamente.");
+      if (!resp.success) {
+        throw new Error(resp.error || `Error al ${actionText} usuario`);
+      }
+
+      setSuccessMsg(`Usuario ${isDeactivating ? "desactivado" : "reactivado"} correctamente.`);
       await loadUsers();
 
       setTimeout(() => {
@@ -120,7 +130,7 @@ const UserManager = () => {
       }, 3000);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Error al eliminar usuario");
+      setError(err.message || `Error al ${actionText} usuario`);
     } finally {
       setLoading(false);
     }
@@ -153,7 +163,6 @@ const UserManager = () => {
         setSuccessMsg("Usuario creado exitosamente.");
       } else {
         const { password, ...updatePayload } = formData;
-        // Ensure we send only the fields that were modified or required
         const resp = await apiClient.updateUser(selectedUser.id, updatePayload);
         if (!resp.success) throw new Error(resp.error);
 
@@ -280,60 +289,83 @@ const UserManager = () => {
                   <th className="p-3">Nombre</th>
                   <th className="p-3">Email</th>
                   <th className="p-3">Rol</th>
+                  <th className="p-3">Estado</th>
                   <th className="p-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {currentUsers.length > 0 ? (
-                  currentUsers.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="border-b border-health-border hover:bg-gray-50 transition"
-                    >
-                      <td className="p-3">
-                        {u.first_name} {u.last_name}
-                      </td>
-                      <td className="p-3">{u.email || "-"}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold
-                                ${
-                                  u.role === "admin"
-                                    ? "bg-purple-100 text-purple-700"
-                                    : u.role === "supervisor"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-green-100 text-green-700"
+                  currentUsers.map((u) => {
+                    const isDeleted = u.is_deleted === true;
+                    return (
+                      <tr
+                        key={u.id}
+                        className={`border-b border-health-border transition
+                          ${isDeleted 
+                            ? "bg-gray-100 text-gray-400" 
+                            : "hover:bg-gray-50"
+                          }
+                        `}
+                      >
+                        <td className="p-3">
+                          {u.first_name} {u.last_name}
+                        </td>
+                        <td className="p-3">{u.email || "-"}</td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-semibold
+                                  ${
+                                    isDeleted
+                                      ? "bg-gray-200 text-gray-500"
+                                      : u.role === "admin"
+                                      ? "bg-purple-100 text-purple-700"
+                                      : u.role === "supervisor"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : "bg-green-100 text-green-700"
+                                  }`}
+                          >
+                            {u.role === "admin"
+                              ? "Jefe Servicio"
+                              : u.role === "supervisor"
+                              ? "Médico Jefe"
+                              : "Residente"}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                           {isDeleted ? (
+                             <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded">Inactivo</span>
+                           ) : (
+                             <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Activo</span>
+                           )}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditClick(u)}
+                              className={`cursor-pointer ${isDeleted ? 'text-gray-400 hover:text-gray-500' : 'text-blue-600 hover:text-blue-700'}`}
+                            >
+                              Editar
+                            </button>
+                            
+                            <button
+                              onClick={() => handleToggleStatusClick(u)}
+                              className={`cursor-pointer font-medium
+                                ${isDeleted 
+                                  ? 'text-green-600 hover:text-green-700' 
+                                  : 'text-red-600 hover:text-red-700'
                                 }`}
-                        >
-                          {u.role === "admin"
-                            ? "Jefe Servicio"
-                            : u.role === "supervisor"
-                            ? "Médico Jefe"
-                            : "Residente"}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditClick(u)}
-                            className="text-blue-600 hover:text-blue-700 cursor-pointer"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(u)}
-                            className="text-red-600 hover:text-red-700 cursor-pointer"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                            >
+                              {isDeleted ? "Reactivar" : "Desactivar"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan="5"
                       className="p-4 text-center text-health-text-muted"
                     >
                       No se encontraron usuarios.
