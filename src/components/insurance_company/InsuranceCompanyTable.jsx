@@ -141,7 +141,17 @@ export default function InsuranceCompanyTable() {
   </button>
 </div>
 
-
+{/* Upload Messages */}
+{uploadMessage && (
+  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+    {uploadMessage}
+  </div>
+)}
+{uploadError && (
+  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+    {uploadError}
+  </div>
+)}
 
       <div className="overflow-x-auto rounded-2xl border border-health-border">
         <table className="w-full text-sm">
